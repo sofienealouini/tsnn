@@ -17,5 +17,11 @@ setup(
         'Development Status :: 1 - Planning',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Artificial Intelligence'
-    ]
+    ],
+    install_requires=[
+        'numpy',
+        'pandas',
+        'scikit-learn',
+        'keras'
+      ]
 )
