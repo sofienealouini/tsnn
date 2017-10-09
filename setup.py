@@ -5,7 +5,7 @@ setup(
     version='0.0.1',
     author='Sofiene Alouini',
     author_email='sofiene.alouini@gmail.com',
-    url='https://github.com/sofienealouini',
+    url='https://github.com/sofienealouini/tsnn',
     description='Time Series Neural Networks wrapper',
     long_description=open('README.md').read(),
     packages=['tsnn'],
