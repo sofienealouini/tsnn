@@ -1,0 +1,8 @@
+README.md
+setup.py
+tsnn/__init__.py
+tsnn/introduction.py
+tsnn.egg-info/PKG-INFO
+tsnn.egg-info/SOURCES.txt
+tsnn.egg-info/dependency_links.txt
+tsnn.egg-info/top_level.txt

@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: tsnn
+Version: 0.0.1
+Summary: Time Series Neural Networks wrapper
+Home-page: https://github.com/sofienealouini/tsnn
+Author: Sofiene Alouini
+Author-email: sofiene.alouini@gmail.com
+License: UNKNOWN
+Description-Content-Type: UNKNOWN
+Description: ## This is the Readme of your package !
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: Free for non-commercial use
+Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 1 - Planning
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
