@@ -2,11 +2,11 @@ from setuptools import setup
 
 setup(
     name='tsnn',
-    version='0.0.1',
+    version='0.0.5',
     author='Sofiene Alouini',
     author_email='sofiene.alouini@gmail.com',
     url='https://github.com/sofienealouini/tsnn',
-    description='Time Series Neural Networks wrapper',
+    description='Time Series Neural Networks (Keras wrapper)',
     long_description=open('README.md').read(),
     packages=['tsnn'],
     test_suite='tests',
