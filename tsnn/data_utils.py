@@ -16,74 +16,108 @@ def stats(raw_data):
     return stats_df
 
 
-def prepare_scaling(raw_data, method):
-    """Creates scaler object and prepares coefficient to reverse scaling later
+def scale_standard(raw_data):
+    """Wrapper for Scikit-learn StandardScaler : scales raw data and returns stats_df for later rescaling.
     
     :param raw_data: pandas.DataFrame - original DataFrame to scale
-    :param method: String in ["", "standard", "minmax", "maxabs"] - method to use for scaling. If "", no scaling.
-    :return: tuple of two elements -
-        - Scaler object : one of [None, StandardScaler(), MaxAbsScaler(), MinMaxScaler()]
-        - DataFrame of coefficients used for reverse scaling
+    :return: tuple of pandas.DataFrames - (data_scaled, stats_df)
     """
     stats_df = stats(raw_data)
-    scalers = {
-        "": None,
-        "standard": StandardScaler(),
-        "maxabs": MaxAbsScaler(),
-        "minmax": MinMaxScaler()
-    }
-    scaler = scalers[method]
-    return scaler, stats_df
+    data_scaled = raw_data.copy()
+    data_scaled.iloc[:, :] = StandardScaler().fit_transform(data_scaled)
+    return data_scaled, stats_df
 
 
-def scale(raw_data, scaler):
-    """Wrapper for Scikit-learn scalers; : scales raw data with the chosen scaler.
+def scale_maxabs(raw_data):
+    """Wrapper for Scikit-learn MaxAbsScaler : scales raw data and returns stats_df for later rescaling.
     
     :param raw_data: pandas.DataFrame - original DataFrame to scale
-    :param scaler: scaler object from prepare_scaling
-    :return: pandas.DataFrames - the scaled data
+    :return: tuple of pandas.DataFrames - (data_scaled, stats_df)
     """
+    stats_df = stats(raw_data)
     data_scaled = raw_data.copy()
-    if scaler is not None:
-        data_scaled.iloc[:, :] = scaler.fit_transform(data_scaled)
-    return data_scaled
+    data_scaled.iloc[:, :] = MaxAbsScaler().fit_transform(data_scaled)
+    return data_scaled, stats_df
 
 
-def reverse_scaling(data_scaled, interest_cols, stats_df, method):
-    """Reverse the scaling of the columns of a 2D numpy array (the predicted values) given the place of these columns 
-    in the original data, the coefficients DataFrame and the scaling method used.
+def scale_minmax(raw_data):
+    """Wrapper for Scikit-learn MinMaxScaler : scales raw data and returns stats_df for later rescaling.
+    
+    :param raw_data: pandas.DataFrame - original DataFrame to scale
+    :return: tuple of pandas.DataFrames - (data_scaled, stats_df)
+    """
+    stats_df = stats(raw_data)
+    data_scaled = raw_data.copy()
+    data_scaled.iloc[:, :] = MinMaxScaler().fit_transform(data_scaled)
+    return data_scaled, stats_df
 
+
+def reverse_standard(data_scaled, interest_vars, stats_df):
+    """Reverse the Standard scaling of a 2D numpy array (the predicted values) given the place of the predicted features 
+    in the original data and the stats DataFrame.
+    
     :param data_scaled: numpy.ndarray (2D) - data to transform back to the original scale.
-    :param interest_cols: list of ints - places of data_scaled columns in the original data
-    :param stats_df: pandas.DataFrame - DataFrame of coefficients used to reverse scaling (obtained from scale())
-    :param method: String in ["", "standard", "minmax", "maxabs"] - method to use for scaling. If "", no scaling.
-    :return: numpy.ndarray (2D) - data transformed to the original scale.
+    :param interest_vars: list of ints - indices of the features to predict (indices in the input matrix)
+            Example : 321 features as inputs, we predicted the features corresponding to the columns 1, 6 and 315:
+            interest_vars is then [1, 6, 315]
+    :param stats_df: pandas.DataFrame - DataFrame of coefficients used to reverse scaling (obtained from scale_standard)
+    :return: numpy.ndarray (2D) - data transformed back to the original scale.
     """
     data_unscaled = np.copy(data_scaled)
-    if method == "":
-        pass
-    else:
-        k = 0
-        for i in interest_cols:
-            if method == "maxabs":
-                coefs = stats_df["maxabs"].loc[i]
-                if len(data_unscaled.shape) > 1:
-                    data_unscaled[:, k] = coefs * data_unscaled[:, k]
-                else:
-                    data_unscaled = coefs * data_unscaled
-            if method == "standard":
-                coefs_1 = stats_df["mean"].loc[i]
-                coefs_2 = stats_df["std"].loc[i]
-                if len(data_unscaled.shape) > 1:
-                    data_unscaled[:, k] = coefs_1 + coefs_2 * data_unscaled[:, k]
-                else:
-                    data_unscaled = coefs_1 + coefs_2 * data_unscaled
-            if method == "minmax":
-                coefs_1 = stats_df["min"].loc[i]
-                coefs_2 = stats_df["max"].loc[i]
-                if len(data_unscaled.shape) > 1:
-                    data_unscaled[:, k] = coefs_1 + (coefs_2 - coefs_1) * data_unscaled[:, k]
-                else:
-                    data_unscaled = coefs_1 + (coefs_2 - coefs_1) * data_unscaled
-            k = k + 1
+    k = 0
+    for i in interest_vars:
+        coefs_1 = stats_df["mean"].loc[i]
+        coefs_2 = stats_df["std"].loc[i]
+        if len(data_unscaled.shape) > 1:
+            data_unscaled[:, k] = coefs_1 + coefs_2 * data_unscaled[:, k]
+        else:
+            data_unscaled = coefs_1 + coefs_2 * data_unscaled
+        k = k + 1
+    return data_unscaled
+
+
+def reverse_maxabs(data_scaled, interest_vars, stats_df):
+    """Reverse the MaxAbs scaling of a 2D numpy array (the predicted values) given the place of the predicted features 
+    in the original data and the stats DataFrame.
+    
+    :param data_scaled: numpy.ndarray (2D) - data to transform back to the original scale.
+    :param interest_vars: list of ints - indices of the features to predict (indices in the input matrix)
+            Example : 321 features as inputs, we predicted the features corresponding to the columns 1, 6 and 315:
+            interest_vars is then [1, 6, 315]
+    :param stats_df: pandas.DataFrame - DataFrame of coefficients used to reverse scaling (obtained from scale_maxabs)
+    :return: numpy.ndarray (2D) - data transformed back to the original scale.
+    """
+    data_unscaled = np.copy(data_scaled)
+    k = 0
+    for i in interest_vars:
+        coefs = stats_df["maxabs"].loc[i]
+        if len(data_unscaled.shape) > 1:
+            data_unscaled[:, k] = coefs * data_unscaled[:, k]
+        else:
+            data_unscaled = coefs * data_unscaled
+        k = k + 1
+    return data_unscaled
+
+
+def reverse_minmax(data_scaled, interest_vars, stats_df):
+    """Reverse the MinMax scaling of a 2D numpy array (the predicted values) given the place of the predicted features 
+    in the original data and the stats DataFrame.
+    
+    :param data_scaled: numpy.ndarray (2D) - data to transform back to the original scale.
+    :param interest_vars: list of ints - indices of the features to predict (indices in the input matrix)
+            Example : 321 features as inputs, we predicted the features corresponding to the columns 1, 6 and 315:
+            interest_vars is then [1, 6, 315]
+    :param stats_df: pandas.DataFrame - DataFrame of coefficients used to reverse scaling (obtained from scale_minmax)
+    :return: numpy.ndarray (2D) - data transformed back to the original scale.
+    """
+    data_unscaled = np.copy(data_scaled)
+    k = 0
+    for i in interest_vars:
+        coefs_1 = stats_df["min"].loc[i]
+        coefs_2 = stats_df["max"].loc[i]
+        if len(data_unscaled.shape) > 1:
+            data_unscaled[:, k] = coefs_1 + (coefs_2 - coefs_1) * data_unscaled[:, k]
+        else:
+            data_unscaled = coefs_1 + (coefs_2 - coefs_1) * data_unscaled
+        k = k + 1
     return data_unscaled
