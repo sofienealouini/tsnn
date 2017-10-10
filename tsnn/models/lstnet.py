@@ -4,13 +4,11 @@ from keras.layers import Input, GRU, Dense, Conv2D, Dropout, concatenate, Add, L
 
 
 class LSTNet(Model):
-    def __init__(self,
-                 batch_input_shape, interest_vars,
+    def __init__(self, batch_input_shape, interest_vars,
                  cnn_filters=100, cnn_kernel_height=6, cnn_activation='relu', cnn_use_bias=True,
                  gru_units=100, gru_activation='relu', gru_use_bias=True,
                  gru_skip_units=5, gru_skip_step=24, gru_skip_activation='relu', gru_skip_use_bias=True,
-                 ar_window=24, ar_use_bias=True,
-                 dropout=0.2):
+                 ar_window=24, ar_use_bias=True, dropout=0.2):
         """LSTNet network for time series forecasting.
         
         'Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks', G. Lai, W. Chang, Y. Yang, H. Liu

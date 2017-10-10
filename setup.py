@@ -22,6 +22,7 @@ setup(
         'numpy',
         'pandas',
         'scikit-learn',
+        'tensorflow',
         'keras'
       ]
 )
