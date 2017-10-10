@@ -169,7 +169,6 @@ def sample_gen_rnn(scaled_inputs,
                    limits=(None, None),
                    samples_length=168,
                    sampling_step=1,
-                   pred_delay=24,
                    pred_length=1,
                    batch_size=24):
     """Batch generator for RNN architectures.
