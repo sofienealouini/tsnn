@@ -10,10 +10,10 @@ class LSTNet(Model):
                  gru_skip_units=5, gru_skip_step=24, gru_skip_activation='relu', gru_skip_use_bias=True,
                  ar_window=24, ar_use_bias=True, dropout=0.2):
         """LSTNet network for time series forecasting.
-        
+
         'Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks', G. Lai, W. Chang, Y. Yang, H. Liu
         Original paper : https://arxiv.org/pdf/1703.07015.pdf
-        
+
         :param batch_input_shape: tuple of ints - (batch_size, timesteps, nb_input_features)
         :param interest_vars: list of ints - indices of the features to predict (indices in the input matrix)
             Example : 321 features as inputs, we want to predict the features corresponding to the columns 1, 6 and 315:
@@ -56,7 +56,7 @@ class LSTNet(Model):
         # Recurrent-skip layer
         skip_rec = Lambda(lambda x: x[:, -possible_jumps * gru_skip_step:, :])(conv)
         skip_rec = Lambda(lambda x: K.reshape(x, (batch_size, possible_jumps, gru_skip_step, cnn_filters)))(skip_rec)
-        skip_rec = Lambda(lambda x:K.permute_dimensions(x, [0, 2, 1, 3]))(skip_rec)
+        skip_rec = Lambda(lambda x: K.permute_dimensions(x, [0, 2, 1, 3]))(skip_rec)
         skip_rec = Lambda(lambda x: K.reshape(x, (-1, possible_jumps, cnn_filters)))(skip_rec)
         skip_rec = GRU(units=gru_skip_units,
                        activation=gru_skip_activation,

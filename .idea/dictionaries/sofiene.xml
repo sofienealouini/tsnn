@@ -9,11 +9,14 @@
       <w>maxabs</w>
       <w>minmax</w>
       <w>ndarray</w>
+      <w>pred</w>
       <w>scaler</w>
       <w>scalers</w>
       <w>scikit</w>
       <w>sofiene</w>
       <w>tsnn</w>
+      <w>xbatch</w>
+      <w>ybatch</w>
     </words>
   </dictionary>
 </component>

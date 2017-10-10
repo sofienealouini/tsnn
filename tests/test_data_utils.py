@@ -204,4 +204,3 @@ class TestDataUtilsFunctions(unittest.TestCase):
 
         assert_equal(computed_xbatch, expected_xbatch)
         assert_equal(computed_ybatch, expected_ybatch)
-
