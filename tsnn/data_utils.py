@@ -182,7 +182,7 @@ def sample_gen_rnn(scaled_inputs,
     :param pred_delay: int - prediction horizon. We predict values at t+pred_delay. Default = 24
     :param pred_length: int - number of predicted timesteps, starting at t+pred_delay. Default = 1
     :param batch_size: int - batch size for mini-batch gradient descent. Default = 24
-    :yield: 
+    :yield: tuple - (input_batch, target_batch)
     """
     if limits[0] is None:
         limits[0] = 0
