@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='tsnn',
-    version='0.0.12',
+    version='0.0.13',
     author='Sofiene Alouini',
     author_email='sofiene.alouini@gmail.com',
     url='https://github.com/sofienealouini/tsnn',
