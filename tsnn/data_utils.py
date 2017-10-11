@@ -169,17 +169,14 @@ def sample_gen_rnn(scaled_inputs,
                    limits=(None, None),
                    samples_length=168,
                    sampling_step=1,
-                   pred_length=1,
                    batch_size=24):
     """Batch generator for RNN architectures.
-    
+
     :param scaled_inputs: pandas.DataFrame - inputs obtained from inputs_targets_split()
     :param scaled_targets: pandas.DataFrame - targets obtained from inputs_targets_split()
     :param limits: int tuple - (start_row, end_row) : start and end rows, one of train_val_split() results
     :param samples_length: int - time window size (timesteps) for the RNN. Default = 168
     :param sampling_step: int - stride used when extracting time windows. Default = 1 (no position skipped)
-    :param pred_delay: int - prediction horizon. We predict values at t+pred_delay. Default = 24
-    :param pred_length: int - number of predicted timesteps, starting at t+pred_delay. Default = 1
     :param batch_size: int - batch size for mini-batch gradient descent. Default = 24
     :yield: tuple - (input_batch, target_batch)
     """
@@ -196,16 +193,16 @@ def sample_gen_rnn(scaled_inputs,
     while inp_row <= limits[1]:
         inp = scaled_inputs.iloc[inp_row:inp_row + samples_length].values
         inp_batch.append(inp)
-
-        if pred_length == 1:
-            tar = scaled_targets.iloc[tar_row].values
-        else:
-            tar = scaled_targets.iloc[tar_row:tar_row + pred_length].values
+        tar = scaled_targets.iloc[tar_row].values
         tar_batch.append(tar)
 
-        if len(inp_batch) == batch_size:
+        if len(inp_batch) == batch_size or inp_row == limits[1]:
             yield np.array(inp_batch), np.array(tar_batch)
             inp_batch = []
             tar_batch = []
         inp_row += sampling_step
         tar_row += sampling_step
+
+        if inp_row > limits[1]:
+            inp_row = limits[0]
+            tar_row = limits[0]

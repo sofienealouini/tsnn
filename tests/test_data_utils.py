@@ -184,8 +184,6 @@ class TestDataUtilsFunctions(unittest.TestCase):
                              limits=(0, 4),
                              samples_length=5,
                              sampling_step=1,
-                             pred_delay=3,
-                             pred_length=1,
                              batch_size=2)
 
         computed_xbatch, computed_ybatch = next(gen)
@@ -202,5 +200,11 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                      [14., 1., 0., 1., 10.]]])
         expected_ybatch = np.array([[10., 3., 0.], [1., 4., 0.]])
 
+        last_batch_x, last_batch_y = None, None
+        for i in range(2):
+            last_batch_x, last_batch_y = next(gen)
+
         assert_equal(computed_xbatch, expected_xbatch)
         assert_equal(computed_ybatch, expected_ybatch)
+        self.assertEqual(len(last_batch_x), 1)
+        self.assertEqual(len(last_batch_y), 1)
