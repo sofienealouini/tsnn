@@ -4,7 +4,7 @@ from keras.layers import Input, GRU, Dense, Conv2D, Dropout, concatenate, Add, L
 
 
 class LSTNet(Model):
-    def __init__(self, batch_input_shape, interest_vars,
+    def __init__(self, input_shape, interest_vars,
                  cnn_filters=100, cnn_kernel_height=6, cnn_activation='relu', cnn_use_bias=True,
                  gru_units=100, gru_activation='relu', gru_use_bias=True,
                  gru_skip_units=5, gru_skip_step=24, gru_skip_activation='relu', gru_skip_use_bias=True,
@@ -14,7 +14,7 @@ class LSTNet(Model):
         'Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks', G. Lai, W. Chang, Y. Yang, H. Liu
         Original paper : https://arxiv.org/pdf/1703.07015.pdf
 
-        :param batch_input_shape: tuple of ints - (batch_size, timesteps, nb_input_features)
+        :param input_shape: tuple of ints - (timesteps, nb_input_features)
         :param interest_vars: list of ints - indices of the features to predict (indices in the input matrix)
             Example : 321 features as inputs, we want to predict the features corresponding to the columns 1, 6 and 315:
             interest_vars is then [1, 6, 315]
@@ -34,8 +34,8 @@ class LSTNet(Model):
         :param dropout: float in ]0, 1[ - dropout rate for all layers
         """
 
-        self.main_input = Input(batch_shape=batch_input_shape)
-        batch_size, timesteps, nb_input_features = batch_input_shape
+        self.main_input = Input(shape=input_shape)
+        timesteps, nb_input_features = input_shape
         possible_jumps = (timesteps - cnn_kernel_height) // gru_skip_step
 
         # Convolutional layer
@@ -55,7 +55,7 @@ class LSTNet(Model):
 
         # Recurrent-skip layer
         skip_rec = Lambda(lambda x: x[:, -possible_jumps * gru_skip_step:, :])(conv)
-        skip_rec = Lambda(lambda x: K.reshape(x, (batch_size, possible_jumps, gru_skip_step, cnn_filters)))(skip_rec)
+        skip_rec = Lambda(lambda x: K.reshape(x, (-1, possible_jumps, gru_skip_step, cnn_filters)))(skip_rec)
         skip_rec = Lambda(lambda x: K.permute_dimensions(x, [0, 2, 1, 3]))(skip_rec)
         skip_rec = Lambda(lambda x: K.reshape(x, (-1, possible_jumps, cnn_filters)))(skip_rec)
         skip_rec = GRU(units=gru_skip_units,
