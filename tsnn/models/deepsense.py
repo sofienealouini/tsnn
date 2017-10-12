@@ -61,9 +61,19 @@ class DeepSense(Model):
         self.main_input = [Input(shape=(sequence_length, sensor_k_dim)) for sensor_k_dim in sensor_dims_list]
 
         split_input = [
-            Lambda(lambda x: K.reshape(x, (-1, sequence_length // time_window_tau, window_size, int(input_k.shape[2]))))(input_k)
+            Lambda(lambda x:
+                   K.reshape(x, (-1, sequence_length // time_window_tau, window_size, int(input_k.shape[2]))))(input_k)
             for input_k in self.main_input]
 
+        indiv_sensors = Lambda(lambda x: self.conv_ops(inp_list=x,
+                                                       filters=cnn_filters,
+                                                       cnn1_kernel_height=cnn1_kernel_height,
+                                                       cnn1_stride=cnn1_stride,
+                                                       cnn2_kernel_size=cnn2_kernel_size,
+                                                       cnn3_kernel_size=cnn3_kernel_size,
+                                                       activation=cnn_activation,
+                                                       use_bias=cnn_use_bias))(split_input)
+        '''
         extended_dim = [Lambda(lambda x: K.expand_dims(x, axis=-1))(input_k) for input_k in split_input]
 
         conv1 = [TimeDistributed(Conv2D(filters=cnn_filters,
@@ -86,11 +96,25 @@ class DeepSense(Model):
                                         activation=cnn_activation,
                                         use_bias=cnn_use_bias))(conv2_out_k) for conv2_out_k in conv2]
 
-        flat_conv3_out = [TimeDistributed(Flatten())(conv3_out_k) for conv3_out_k in conv3]
+        flat_conv3_out = [TimeDistributed(Flatten())(conv3_out_k) for conv3_out_k in conv3]'''
 
+
+        ############################ if len(flat_conv3_out) == 1 (1 sensor) stop here ##################################
+
+        all_sensors = Lambda(lambda x: self.conv_ops(inp_list=x,
+                                                     filters=cnn_filters,
+                                                     cnn1_kernel_height=cnn4_kernel_height,
+                                                     cnn1_stride=1,
+                                                     cnn2_kernel_size=cnn5_kernel_size,
+                                                     cnn3_kernel_size=cnn6_kernel_size,
+                                                     activation=cnn_activation,
+                                                     use_bias=cnn_use_bias))(indiv_sensors)
+
+        '''
         # Merged outputs
         extended_dim2 = [TimeDistributed(Lambda(lambda x: K.expand_dims(x, axis=-1)))(conv3_out_k)
                          for conv3_out_k in flat_conv3_out]
+
         merged = concatenate(extended_dim2) if len(extended_dim2) > 1 else extended_dim2[0]
 
         # Add the "channels" dimension to meet Conv2D expected input format
@@ -116,14 +140,16 @@ class DeepSense(Model):
                                        use_bias=cnn_use_bias))(conv5)
 
         # Flattened output
-        flat_conv6_out = TimeDistributed(Flatten())(conv6)
+        flat_conv6_out = TimeDistributed(Flatten())(conv6)'''
+
+        ################################################################################################################
 
         # First GRU layer
         rec1_out = GRU(units=gru_units,
                        use_bias=gru_use_bias,
                        activation=gru_activation,
                        dropout=dropout,
-                       return_sequences=True)(flat_conv6_out)
+                       return_sequences=True)(all_sensors)
 
         # Second GRU layer
         rec2_out = GRU(units=gru_units,
@@ -136,3 +162,32 @@ class DeepSense(Model):
                                  use_bias=True)(rec2_out)
 
         super(DeepSense, self).__init__(inputs=self.main_input, outputs=[self.main_output])
+
+    def conv_ops(self, inp_list, filters, cnn1_kernel_height, cnn1_stride, cnn2_kernel_size, cnn3_kernel_size,
+                 activation, use_bias):
+
+        # First convolutional layer (Conv2D)
+        extended_dim = [Lambda(lambda x: K.expand_dims(x, axis=-1))(input_k) for input_k in inp_list]
+        conv1 = [TimeDistributed(Conv2D(filters=filters,
+                                        kernel_size=(cnn1_kernel_height, ext_input_k.get_shape().as_list()[-2]),
+                                        activation=activation,
+                                        strides=cnn1_stride,
+                                        use_bias=use_bias))(ext_input_k) for ext_input_k in extended_dim]
+
+        flat_conv1_out = [Lambda(lambda x: K.squeeze(x, axis=3))(conv1_out_k) for conv1_out_k in conv1]
+
+        # Second convolutional layer (Conv1D)
+        conv2 = [TimeDistributed(Conv1D(filters=filters,
+                                        kernel_size=cnn2_kernel_size,
+                                        activation=activation,
+                                        use_bias=use_bias))(conv1_out_k) for conv1_out_k in flat_conv1_out]
+
+        # Third convolutional layer (Conv1D)
+        conv3 = [TimeDistributed(Conv1D(filters=filters,
+                                        kernel_size=cnn3_kernel_size,
+                                        activation=activation,
+                                        use_bias=use_bias))(conv2_out_k) for conv2_out_k in conv2]
+
+        flat_conv3_out = [TimeDistributed(Flatten())(conv3_out_k) for conv3_out_k in conv3]
+
+        return flat_conv3_out
