@@ -2,11 +2,12 @@ from setuptools import setup
 
 setup(
     name='tsnn',
-    version='0.0.13',
+    version='0.0.14',
     author='Sofiene Alouini',
     author_email='sofiene.alouini@gmail.com',
     url='https://github.com/sofienealouini/tsnn',
     description='Time Series Neural Networks (Keras wrapper)',
+    long_description=open('README.md').read(),
     packages=['tsnn'],
     test_suite='tests',
     classifiers=[
@@ -18,10 +19,11 @@ setup(
         'Topic :: Scientific/Engineering :: Artificial Intelligence'
     ],
     install_requires=[
-        'numpy',
-        'pandas',
-        'scikit-learn',
-        'tensorflow',
-        'keras'
+        'numpy >= 1.13.0',
+        'matplotlib >= 2.1.0',
+        'pandas >= 0.20.0',
+        'scikit-learn >= 0.19.0',
+        'tensorflow >= 1.3.0',
+        'keras >= 2.0.8'
       ]
 )
