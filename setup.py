@@ -1,14 +1,14 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='tsnn',
-    version='0.0.15',
+    version='0.0.16',
     author='Sofiene Alouini',
     author_email='sofiene.alouini@gmail.com',
     url='https://github.com/sofienealouini/tsnn',
     description='Time Series Neural Networks (Keras wrapper)',
     long_description=open('README.md').read(),
-    packages=['tsnn'],
+    packages=find_packages(),
     test_suite='tests',
     classifiers=[
         'Programming Language :: Python :: 3',
