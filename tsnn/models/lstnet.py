@@ -40,6 +40,10 @@ class LSTNet(Model):
         timesteps, nb_input_features = input_shape
         possible_jumps = (timesteps - cnn_kernel_height) // gru_skip_step
 
+
+        ### Vérification paramètres
+
+
         # Convolutional layer
         conv = Lambda(lambda x: K.expand_dims(x, -1), name="Conv_in_expand")(self.main_input)
         conv = Conv2D(filters=cnn_filters,

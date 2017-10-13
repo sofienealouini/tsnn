@@ -90,7 +90,7 @@ def reverse_maxabs(data_scaled, interest_vars, stats_df):
     data_unscaled = np.copy(data_scaled)
     k = 0
     for i in interest_vars:
-        coefs = stats_df["maxabs"].loc[i]
+        coefs = stats_df["maxabs"].iloc[i]
         if len(data_unscaled.shape) > 1:
             data_unscaled[:, k] = coefs * data_unscaled[:, k]
         else:
@@ -169,7 +169,8 @@ def sample_gen_rnn(scaled_inputs,
                    limits=(None, None),
                    samples_length=168,
                    sampling_step=1,
-                   batch_size=24):
+                   batch_size=24,
+                   inputs_only=False):
     """Batch generator for RNN architectures.
 
     :param scaled_inputs: pandas.DataFrame - inputs obtained from inputs_targets_split()
@@ -178,6 +179,9 @@ def sample_gen_rnn(scaled_inputs,
     :param samples_length: int - time window size (timesteps) for the RNN. Default = 168
     :param sampling_step: int - stride used when extracting time windows. Default = 1 (no position skipped)
     :param batch_size: int - batch size for mini-batch gradient descent. Default = 24
+    :param inputs_only: boolean - whether the generator yields inputs only or (inputs, targets). 
+        - Set to False if using fit_generator or evaluate_generator
+        - Set to True if using predict_generator
     :yield: tuple - (input_batch, target_batch)
     """
     if limits[0] is None:
@@ -190,19 +194,25 @@ def sample_gen_rnn(scaled_inputs,
     inp_batch = []
     tar_batch = []
 
-    while inp_row <= limits[1]:
+    while inp_row < limits[1]:
         inp = scaled_inputs.iloc[inp_row:inp_row + samples_length].values
         inp_batch.append(inp)
         tar = scaled_targets.iloc[tar_row].values
         tar_batch.append(tar)
 
-        if len(inp_batch) == batch_size or inp_row == limits[1]:
-            yield np.array(inp_batch), np.array(tar_batch)
+        if len(inp_batch) == batch_size or inp_row == (limits[1] - 1):
+            if inputs_only:
+                yield np.array(inp_batch)
+            else:
+                yield np.array(inp_batch), np.array(tar_batch)
             inp_batch = []
             tar_batch = []
         inp_row += sampling_step
         tar_row += sampling_step
 
-        if inp_row > limits[1]:
+        if inp_row >= limits[1]:
             inp_row = limits[0]
             tar_row = limits[0]
+
+
+###### GENERATEUR pour les X seuls
