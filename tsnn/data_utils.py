@@ -66,8 +66,8 @@ def reverse_standard(data_scaled, interest_vars, stats_df):
     data_unscaled = np.copy(data_scaled)
     k = 0
     for i in interest_vars:
-        coefs_1 = stats_df["mean"].loc[i]
-        coefs_2 = stats_df["std"].loc[i]
+        coefs_1 = stats_df["mean"].iloc[i]
+        coefs_2 = stats_df["std"].iloc[i]
         if len(data_unscaled.shape) > 1:
             data_unscaled[:, k] = coefs_1 + coefs_2 * data_unscaled[:, k]
         else:
@@ -113,8 +113,8 @@ def reverse_minmax(data_scaled, interest_vars, stats_df):
     data_unscaled = np.copy(data_scaled)
     k = 0
     for i in interest_vars:
-        coefs_1 = stats_df["min"].loc[i]
-        coefs_2 = stats_df["max"].loc[i]
+        coefs_1 = stats_df["min"].iloc[i]
+        coefs_2 = stats_df["max"].iloc[i]
         if len(data_unscaled.shape) > 1:
             data_unscaled[:, k] = coefs_1 + (coefs_2 - coefs_1) * data_unscaled[:, k]
         else:
