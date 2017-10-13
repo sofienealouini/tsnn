@@ -58,7 +58,7 @@ class LSTNet(Model):
                   name="GRU")(conv)
 
         # Recurrent-skip layer
-        skip_rec = Lambda(lambda x: self.gru_skip_prep(x, possible_jumps, gru_skip_step, cnn_filters),
+        skip_rec = Lambda(lambda x: gru_skip_prep(x, possible_jumps, gru_skip_step, cnn_filters),
                           name="GRU_skip_inp_prep")(conv)
         skip_rec = GRU(units=gru_skip_units,
                        activation=gru_skip_activation,
@@ -73,7 +73,7 @@ class LSTNet(Model):
         res = Dense(len(interest_vars), activation='linear', name="NN_dim_reduce")(rec)
 
         # Autoregressive component
-        ar = Lambda(lambda x: self.autoreg_prep(x, ar_window, interest_vars), name="Autoreg_prep")(self.main_input)
+        ar = Lambda(lambda x: autoreg_prep(x, ar_window, interest_vars), name="Autoreg_prep")(self.main_input)
         ar = Dense(units=1,
                    activation="linear",
                    use_bias=ar_use_bias,
@@ -86,7 +86,8 @@ class LSTNet(Model):
 
         super(LSTNet, self).__init__(inputs=[self.main_input], outputs=[self.main_output])
 
-    def autoreg_prep(self, x, ar_window, interest_vars):
+
+def autoreg_prep(x, ar_window, interest_vars):
         """Batch transformations in order to perform autoregression.
         
         :param x: numpy.ndarray (3D) - batch of inputs (batch_size, timesteps, nb_features)
@@ -101,7 +102,8 @@ class LSTNet(Model):
         reshaped = K.reshape(perm_2, (-1, ar_window))
         return reshaped
 
-    def gru_skip_prep(self, conv_x, possible_jumps, gru_skip_step, cnn_filters):
+
+def gru_skip_prep(conv_x, possible_jumps, gru_skip_step, cnn_filters):
         """Batch transformations for the recurrent-skip layer.
         
         :param conv_x: numpy.ndarray - output of the convolutional layer
