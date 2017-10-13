@@ -164,6 +164,18 @@ def train_val_split(targets, train_ratio=0.6, val_ratio=0.2):
     return (train_start, train_end), (val_start, val_end), (test_start, test_end)
 
 
+def colnames_to_colindices(interest_cols, original_df):
+    """Returns a list containing the indices (in the original DataFrame) of the target columns.
+    
+    :param interest_cols: list - list of target columns names 
+    :param original_df: pandas.DataFrame - initial DataFrame with its original column names
+    :return: list of ints - indices of the target columns in the original DataFrame. 
+    """
+    names = list(original_df.columns)
+    indices = [names.index(col) for col in interest_cols]
+    return indices
+
+
 def sample_gen_rnn(scaled_inputs,
                    scaled_targets,
                    limits=(None, None),

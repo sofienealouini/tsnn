@@ -4,7 +4,7 @@ import pandas as pd
 from numpy.testing import assert_equal, assert_almost_equal
 from tsnn.data_utils import stats, scale_standard, scale_maxabs, scale_minmax, \
     reverse_standard, reverse_maxabs, reverse_minmax, inputs_targets_split, train_val_split, \
-    sample_gen_rnn
+    colnames_to_colindices, sample_gen_rnn
 
 
 class TestDataUtilsFunctions(unittest.TestCase):
@@ -168,6 +168,18 @@ class TestDataUtilsFunctions(unittest.TestCase):
         computed_limits = train_val_split(target, train_ratio, val_ratio)
 
         self.assertEqual(computed_limits, expected_limits)
+
+    def test_colnames_to_colindices(self):
+        origin = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
+                               'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
+                               'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
+                               'D': [-2., 3., 6., 7., 18., 1., 2., 3., 4., 5., -12., -5.],
+                               'E': [10., 0., 10., 12., 14., 10., 0., 0., 0., 0., 0., 1.]})
+
+        target_names = ['B', 'C', 'E']
+        expected_result = [1, 2, 4]
+        computed_result = colnames_to_colindices(target_names, origin)
+        self.assertEqual(computed_result, expected_result)
 
     def test_sample_gen_rnn(self):
         inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],

@@ -12,4 +12,3 @@ class TestLSTNetFunctions(unittest.TestCase):
 
     def test_gru_skip_prep(self):
         pass
-
