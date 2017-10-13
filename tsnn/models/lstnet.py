@@ -36,53 +36,82 @@ class LSTNet(Model):
         :param dropout: float in ]0, 1[ - dropout rate for all layers
         """
 
-        self.main_input = Input(shape=input_shape)
+        self.main_input = Input(shape=input_shape, name="Main_input")
         timesteps, nb_input_features = input_shape
         possible_jumps = (timesteps - cnn_kernel_height) // gru_skip_step
 
         # Convolutional layer
-        conv = Lambda(lambda x: K.expand_dims(x, -1))(self.main_input)
+        conv = Lambda(lambda x: K.expand_dims(x, -1), name="Conv_in_expand")(self.main_input)
         conv = Conv2D(filters=cnn_filters,
                       kernel_size=(cnn_kernel_height, nb_input_features),
                       activation=cnn_activation,
-                      use_bias=cnn_use_bias)(conv)
-        conv = Dropout(dropout)(conv)
-        conv = Lambda(lambda x: K.squeeze(x, axis=2))(conv)
+                      use_bias=cnn_use_bias,
+                      name="Conv")(conv)
+        conv = Dropout(dropout, name="Conv_dropout")(conv)
+        conv = Lambda(lambda x: K.squeeze(x, axis=2), name="Conv_out_squeeze")(conv)
 
         # Recurrent layer
         rec = GRU(units=gru_units,
                   use_bias=gru_use_bias,
                   activation=gru_activation,
-                  dropout=dropout)(conv)
+                  dropout=dropout,
+                  name="GRU")(conv)
 
         # Recurrent-skip layer
-        skip_rec = Lambda(lambda x: x[:, -possible_jumps * gru_skip_step:, :])(conv)
-        skip_rec = Lambda(lambda x: K.reshape(x, (-1, possible_jumps, gru_skip_step, cnn_filters)))(skip_rec)
-        skip_rec = Lambda(lambda x: K.permute_dimensions(x, [0, 2, 1, 3]))(skip_rec)
-        skip_rec = Lambda(lambda x: K.reshape(x, (-1, possible_jumps, cnn_filters)))(skip_rec)
+        skip_rec = Lambda(lambda x: self.gru_skip_prep(x, possible_jumps, gru_skip_step, cnn_filters),
+                          name="GRU_skip_inp_prep")(conv)
         skip_rec = GRU(units=gru_skip_units,
                        activation=gru_skip_activation,
                        use_bias=gru_skip_use_bias,
-                       dropout=dropout)(skip_rec)
-        skip_rec = Lambda(lambda x: K.reshape(x, (-1, gru_skip_step * gru_skip_units)))(skip_rec)
+                       dropout=dropout,
+                       name="GRU_skip")(skip_rec)
+        skip_rec = Lambda(lambda x: K.reshape(x, (-1, gru_skip_step * gru_skip_units)),
+                          name="GRU_skip_out_reshape")(skip_rec)
 
         # Combination of recurrent outputs
-        rec = concatenate([rec, skip_rec], axis=1)
-        res = Dense(len(interest_vars), activation='linear')(rec)
+        rec = concatenate([rec, skip_rec], axis=1, name="Recurrent_concat")
+        res = Dense(len(interest_vars), activation='linear', name="NN_dim_reduce")(rec)
 
         # Autoregressive component
-        ar = Lambda(lambda x: x[:, -ar_window:, :])(self.main_input)
-        ar = Lambda(lambda x: K.permute_dimensions(x, [2, 1, 0]))(ar)
-        ar = Lambda(lambda x: K.gather(x, interest_vars))(ar)
-        ar = Lambda(lambda x: K.permute_dimensions(x, [2, 0, 1]))(ar)
-        ar = Lambda(lambda x: K.reshape(x, (-1, ar_window)))(ar)
+        ar = Lambda(lambda x: self.autoreg_prep(x, ar_window, interest_vars), name="Autoreg_prep")(self.main_input)
         ar = Dense(units=1,
                    activation="linear",
-                   use_bias=ar_use_bias)(ar)
-        ar = Lambda(lambda x: K.reshape(x, (-1, len(interest_vars))))(ar)
+                   use_bias=ar_use_bias,
+                   name="Autoreg")(ar)
+        ar = Lambda(lambda x: K.reshape(x, (-1, len(interest_vars))), name="Autoreg_out_reshape")(ar)
 
-        # Summing NN and AR branches
-        res = Add()([res, ar])
+        # Summing NN and Autoregressive branches
+        res = Add(name="Sum_NN_Autoreg")([res, ar])
         self.main_output = res
 
         super(LSTNet, self).__init__(inputs=[self.main_input], outputs=[self.main_output])
+
+    def autoreg_prep(self, x, ar_window, interest_vars):
+        """Batch transformations in order to perform autoregression.
+        
+        :param x: numpy.ndarray (3D) - batch of inputs (batch_size, timesteps, nb_features)
+        :param ar_window: int - number of past values to use as predictors for autoregression
+        :param interest_vars: interest_vars: list of ints - indices of the features to predict (in the input matrix)
+        :return: numpy.ndarray (2D) - data formatted for autoregression
+        """
+        predictors_window = x[:, -ar_window:, :]
+        perm_1 = K.permute_dimensions(predictors_window, [2, 1, 0])
+        interest_vars_only = K.gather(perm_1, interest_vars)
+        perm_2 = K.permute_dimensions(interest_vars_only, [2, 0, 1])
+        reshaped = K.reshape(perm_2, (-1, ar_window))
+        return reshaped
+
+    def gru_skip_prep(self, conv_x, possible_jumps, gru_skip_step, cnn_filters):
+        """Batch transformations for the recurrent-skip layer.
+        
+        :param conv_x: numpy.ndarray - output of the convolutional layer
+        :param possible_jumps: int - number of possible jumps in the past, considering timesteps and gru_skip_step.
+        :param gru_skip_step: int - skipped timesteps in the recurrent-skip layer.
+        :param cnn_filters: int - number of filters in the convolutional layer.
+        :return: numpy.ndarray (3D) - data formatted for recurrent-skip layer.
+        """
+        jumps_window = conv_x[:, -possible_jumps * gru_skip_step:, :]
+        reshaped_window = K.reshape(jumps_window, (-1, possible_jumps, gru_skip_step, cnn_filters))
+        permuted_columns = K.permute_dimensions(reshaped_window, [0, 2, 1, 3])
+        gru_skip_input = K.reshape(permuted_columns, (-1, possible_jumps, cnn_filters))
+        return gru_skip_input
