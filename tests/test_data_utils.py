@@ -80,8 +80,8 @@ class TestDataUtilsFunctions(unittest.TestCase):
 
         expected_reversed_part = expected_reversed_all[:3, 1:3]
 
-        computed_reversed_all = reverse_standard(data, ['A', 'B', 'C'], stats_df)
-        computed_reversed_part = reverse_standard(data[:3, 1:3], ['B', 'C'], stats_df)
+        computed_reversed_all = reverse_standard(data, [0, 1, 2], stats_df)
+        computed_reversed_part = reverse_standard(data[:3, 1:3], [1, 2], stats_df)
 
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
@@ -105,8 +105,8 @@ class TestDataUtilsFunctions(unittest.TestCase):
 
         expected_reversed_part = expected_reversed_all[:3, 1:3]
 
-        computed_reversed_all = reverse_maxabs(data, ['A', 'B', 'C'], stats_df)
-        computed_reversed_part = reverse_maxabs(data[:3, 1:3], ['B', 'C'], stats_df)
+        computed_reversed_all = reverse_maxabs(data, [0, 1, 2], stats_df)
+        computed_reversed_part = reverse_maxabs(data[:3, 1:3], [1, 2], stats_df)
 
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
@@ -129,8 +129,8 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                               'C': [-20., 0., -11., -12., -14.]}).values
         expected_reversed_part = expected_reversed_all[:3, 1:3]
 
-        computed_reversed_all = reverse_minmax(data, ['A', 'B', 'C'], stats_df)
-        computed_reversed_part = reverse_minmax(data[:3, 1:3], ['B', 'C'], stats_df)
+        computed_reversed_all = reverse_minmax(data, [0, 1, 2], stats_df)
+        computed_reversed_part = reverse_minmax(data[:3, 1:3], [1, 2], stats_df)
 
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
@@ -181,7 +181,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                 'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
 
         gen = sample_gen_rnn(inputs, targets,
-                             limits=(0, 4),
+                             limits=(0, 5),
                              samples_length=5,
                              sampling_step=1,
                              batch_size=2)
@@ -198,7 +198,8 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                      [1., -1., -12., 7., 12.],
                                      [1., 1., -14., 18., 14.],
                                      [14., 1., 0., 1., 10.]]])
-        expected_ybatch = np.array([[10., 3., 0.], [1., 4., 0.]])
+        expected_ybatch = np.array([[10., 3., 0.],
+                                    [1., 4., 0.]])
 
         last_batch_x, last_batch_y = None, None
         for i in range(2):
