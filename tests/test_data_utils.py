@@ -381,6 +381,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
 
 
     ##############
+    '''
     def test_inputs_targets_split_should_split_correctly(self):
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2., -1., 1., 1.],
                              'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0., 10., 12., 14],
@@ -402,9 +403,10 @@ class TestDataUtilsFunctions(unittest.TestCase):
         assert_equal(computed_tar[['D']].iloc[-1, 0], -1.)
         self.assertEqual(computed_inp[['B']].iloc[7, 0], computed_tar[['B']].iloc[0, 0])
         self.assertEqual(len(computed_inp), 12)
-        self.assertEqual(len(computed_tar), 8)
+        self.assertEqual(len(computed_tar), 8)'''
 
     ##############
+    '''
     def test_sample_gen_rnn(self):
         inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
                                'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
@@ -445,8 +447,10 @@ class TestDataUtilsFunctions(unittest.TestCase):
         assert_equal(computed_ybatch, expected_ybatch)
         self.assertEqual(len(last_batch_x), 1)
         self.assertEqual(len(last_batch_y), 1)
+        '''
 
     ##############
+    '''
     def test_sample_gen_rnn_should_yield_all_batches_when_limits_are_not_given(self):
         inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
                                'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
@@ -485,7 +489,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         assert_equal(computed_xbatch, expected_xbatch)
         assert_equal(computed_ybatch, expected_ybatch)
         self.assertEqual(len(last_batch_x), 1)
-        self.assertEqual(len(last_batch_y), 1)
+        self.assertEqual(len(last_batch_y), 1)'''
 
     ##############
     def test_sample_gen_rnn_should_yield_correct_batch_at_dataframe_end(self):
