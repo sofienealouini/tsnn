@@ -52,6 +52,13 @@ def scale_minmax(raw_data):
     return data_scaled, stats_df
 
 
+def scale(raw_data, method):
+    method_dict = {"standard": scale_standard,
+                   "maxabs": scale_maxabs,
+                   "minmax": scale_minmax}
+    return method_dict[method](raw_data)
+
+
 def reverse_standard(data_scaled, interest_vars, stats_df):
     """Reverse the Standard scaling of a 2D numpy array (the predicted values) given the place of the predicted features 
     in the original data and the stats DataFrame.
@@ -121,6 +128,13 @@ def reverse_minmax(data_scaled, interest_vars, stats_df):
             data_unscaled = coefs_1 + (coefs_2 - coefs_1) * data_unscaled
         k = k + 1
     return data_unscaled
+
+
+def reverse_scaling(data_scaled, interest_vars, stats_df, method):
+    method_dict = {"standard": reverse_standard,
+                   "maxabs": reverse_maxabs,
+                   "minmax": reverse_minmax}
+    return method_dict[method](data_scaled, interest_vars, stats_df)
 
 
 def inputs_targets_split(data, input_cols, target_cols, samples_length=168, pred_delay=24, pred_length=1):

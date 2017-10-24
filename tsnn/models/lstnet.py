@@ -19,7 +19,7 @@ class LSTNet(Model):
         :param input_shape: tuple of ints - (timesteps, nb_input_features)
         :param interest_vars: list of ints - indices of the features to predict (indices in the input matrix)
             Example : 321 features as inputs, we want to predict the features corresponding to the columns 1, 6 and 315:
-            interest_vars is then [1, 6, 315]
+            --> interest_vars is then [1, 6, 315]
         :param cnn_filters: int - number of filters in the convolutional layer. Default = 100
         :param cnn_kernel_height: int - height of the convolutional kernel, must be <= timesteps. Default = 6
         :param cnn_activation: Keras activation function - Default = 'relu'
@@ -40,9 +40,7 @@ class LSTNet(Model):
         timesteps, nb_input_features = input_shape
         possible_jumps = (timesteps - cnn_kernel_height) // gru_skip_step
 
-
-        ### Vérification paramètres
-
+        # Check parameters
 
         # Convolutional layer
         conv = Lambda(lambda x: K.expand_dims(x, -1), name="Conv_in_expand")(self.main_input)

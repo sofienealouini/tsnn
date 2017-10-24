@@ -23,7 +23,7 @@ class DeepSense(Model):
                  gru_use_bias=True,
                  gru_activation='relu',
                  dropout=0.1,
-                 output_dim=321):
+                 output_dim=1):
 
         """DeepSense network for multi-sensor time series forecasting.
         
@@ -36,7 +36,7 @@ class DeepSense(Model):
         :param sequence_length: int - length of the input sequence (the generator yields a batch of those sequences)
         :param time_window_tau: int - time windows Tau. Each input sequence is cut into smaller windows of size Tau.
             2*time_window_tau must divide sequence_length
-        :param freq_domain: boolean - whether to use FFT. If True, the window size is doubled (time => (amp, pha))
+        :param freq_domain: boolean - whether to use FFT. If True, the window size is doubled (time --> (amp, pha))
         :param cnn_filters: int - number of filters in the convolutional layers. Default = 64
         :param cnn1_kernel_height: int - height of the first convolutional kernel (at individual sensor level)
             Must be < time_window_tau. Default = 2
@@ -58,6 +58,10 @@ class DeepSense(Model):
         window_size = 2 * time_window_tau if freq_domain else time_window_tau
         cnn1_stride = 2 if freq_domain else 1
 
+        # 2*time_window_tau must divide sequence_length
+        # cnn1_kernel_height Must be < time_window_tau
+        # various conditions on kernel sizes and matrix heights...
+
         self.main_input = [Input(shape=(sequence_length, sensor_k_dim)) for sensor_k_dim in sensor_dims_list]
 
         split_input = [Lambda(
@@ -66,6 +70,7 @@ class DeepSense(Model):
 
         extended_dim = [Lambda(lambda x: K.expand_dims(x, axis=-1))(input_k) for input_k in split_input]
 
+        # First individual convolutional layer
         conv1 = [TimeDistributed(Conv2D(filters=cnn_filters,
                                         kernel_size=(cnn1_kernel_height, ext_input_k.get_shape().as_list()[-2]),
                                         activation=cnn_activation,
@@ -74,13 +79,13 @@ class DeepSense(Model):
 
         flat_conv1_out = [Lambda(lambda x: K.squeeze(x, axis=3))(conv1_out_k) for conv1_out_k in conv1]
 
-        # Second convolutional layer
+        # Second individual convolutional layer
         conv2 = [TimeDistributed(Conv1D(filters=cnn_filters,
                                         kernel_size=cnn2_kernel_size,
                                         activation=cnn_activation,
                                         use_bias=cnn_use_bias))(conv1_out_k) for conv1_out_k in flat_conv1_out]
 
-        # Third convolutional layer
+        # Third individual convolutional layer
         conv3 = [TimeDistributed(Conv1D(filters=cnn_filters,
                                         kernel_size=cnn3_kernel_size,
                                         activation=cnn_activation,
