@@ -52,11 +52,12 @@ def scale_minmax(raw_data):
     return data_scaled, stats_df
 
 
-def scale(raw_data, method):
+def scaling(raw_data, method):
     method_dict = {"standard": scale_standard,
                    "maxabs": scale_maxabs,
                    "minmax": scale_minmax}
-    return method_dict[method](raw_data)
+    scaled, stats_df = method_dict[method](raw_data)
+    return scaled, stats_df
 
 
 def reverse_standard(data_scaled, interest_vars, stats_df):

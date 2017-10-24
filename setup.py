@@ -24,7 +24,6 @@ setup(
         'pandas >= 0.20.0',
         'scikit-learn >= 0.19.0',
         'tensorflow >= 1.3.0',
-        'keras >= 2.0.8',
-        'mock >= 2.0.0'
+        'keras >= 2.0.8'
       ]
 )

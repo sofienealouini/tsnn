@@ -1,16 +1,18 @@
 import unittest
-import mock
+from unittest.mock import patch
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_equal, assert_almost_equal
-from tsnn.data_utils import stats, scale_standard, scale_maxabs, scale_minmax, \
-    reverse_standard, reverse_maxabs, reverse_minmax, inputs_targets_split, train_val_split, \
-    colnames_to_colindices, sample_gen_rnn
+from tsnn.data_utils import stats, scale_standard, scale_maxabs, scale_minmax, scaling, \
+    reverse_standard, reverse_maxabs, reverse_minmax, reverse_scaling,\
+    inputs_targets_split, train_val_split, colnames_to_colindices, sample_gen_rnn
 
 
 class TestDataUtilsFunctions(unittest.TestCase):
 
     def test_stats(self):
+
+        # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
                              'B': [-5., -3., -2., -1., 1.],
                              'C': [-20., -8., -11., -12., -14.]})
@@ -23,47 +25,107 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                       index=['A', 'B', 'C'],
                                       columns=['min', 'max', 'mean', 'std', 'maxabs'])
 
+        # When
         stats_df = stats(data)
+
+        # Check
         assert_equal(stats_df.values, expected_stats.values)
 
-    def test_scale_standard(self):
+    @patch('sklearn.preprocessing.StandardScaler.fit_transform')
+    def test_scale_standard_calls_sklearn_StandardScaler(self, mock):
+
+        # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
                              'B': [-5., -3., -2., -1., 1.],
                              'C': [-20., -8., -11., -12., -14.]})
 
-        expected_scaled = pd.DataFrame({'A': [0., 0., 0., 0., 0.],
-                                        'B': [-1.5, -0.5, 0., 0.5, 1.5],
-                                        'C': [-1.75, 1.25, 0.5, 0.25, -0.25]})
+        mock.return_value = pd.DataFrame(np.random.rand(data.shape[0], data.shape[1]))
 
+        # When
         computed_scaled, _ = scale_standard(data)
-        assert_almost_equal(computed_scaled.values, expected_scaled.values)
 
-    def test_scale_maxabs(self):
+        # Check
+        mock.assert_called_once()
+
+    @patch('sklearn.preprocessing.MaxAbsScaler.fit_transform')
+    def test_scale_maxabs_calls_sklearn_MaxAbsScaler(self, mock):
+
+        # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
                              'B': [-5., -3., -2., -1., 1.],
                              'C': [-20., -8., -11., -12., -14.]})
 
-        expected_scaled = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
-                                        'B': [-1., -0.6, -0.4, -0.2, 0.2],
-                                        'C': [-1., -0.4, -0.55, -0.6, -0.7]})
+        mock.return_value = pd.DataFrame(np.random.rand(data.shape[0], data.shape[1]))
 
+        # When
         computed_scaled, _ = scale_maxabs(data)
-        assert_almost_equal(computed_scaled.values, expected_scaled.values)
 
-    def test_scale_minmax(self):
-        data = pd.DataFrame({'A': [1., 1., 1., 1., 2.],
-                             'B': [-5., -3., -2., -1., 5.],
-                             'C': [-20., 0., -11., -12., -14.]})
+        # Check
+        mock.assert_called_once()
 
-        expected_scaled = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
-                                        'B': [0., 0.2, 0.3, 0.4, 1.],
-                                        'C': [0., 1., 0.45, 0.4, 0.3]})
+    @patch('sklearn.preprocessing.MinMaxScaler.fit_transform')
+    def test_scale_minmax_calls_sklearn_MinMaxScaler(self, mock):
 
+        # Given
+        data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
+                             'B': [-5., -3., -2., -1., 1.],
+                             'C': [-20., -8., -11., -12., -14.]})
+
+        mock.return_value = pd.DataFrame(np.random.rand(data.shape[0], data.shape[1]))
+
+        # When
         computed_scaled, _ = scale_minmax(data)
-        assert_almost_equal(computed_scaled.values, expected_scaled.values)
 
-    def test_scale(self):
-        pass
+        # Check
+        mock.assert_called_once()
+
+    @patch('tsnn.data_utils.scale_standard')
+    def test_scaling_with_standard_method(self, mock):
+
+        # Given
+        data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
+                             'B': [-5., -3., -2., -1., 1.],
+                             'C': [-20., -8., -11., -12., -14.]})
+        method = "standard"
+        mock.return_value = (0, 42)
+
+        # When
+        scaling(data, method)
+
+        # Check
+        mock.assert_called_once()
+
+    @patch('tsnn.data_utils.scale_maxabs')
+    def test_scale_with_maxabs_method(self, mock):
+
+        # Given
+        data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
+                             'B': [-5., -3., -2., -1., 1.],
+                             'C': [-20., -8., -11., -12., -14.]})
+        method = "maxabs"
+        mock.return_value = (0, 42)
+
+        # When
+        scaling(data, method)
+
+        # Check
+        mock.assert_called_once()
+
+    @patch('tsnn.data_utils.scale_minmax')
+    def test_scale_with_minmax_method(self, mock):
+
+        # Given
+        data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
+                             'B': [-5., -3., -2., -1., 1.],
+                             'C': [-20., -8., -11., -12., -14.]})
+        method = "minmax"
+        mock.return_value = (0, 42)
+
+        # When
+        scaling(data, method)
+
+        # Check
+        mock.assert_called_once()
 
     def test_reverse_standard_should_return_correct_values_with_all_features_prediction(self):
 
@@ -203,8 +265,83 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
 
-    def test_reverse_scaling(self):
-        pass
+    @patch('tsnn.data_utils.reverse_standard')
+    def test_reverse_scaling_with_standard_method(self, mock):
+
+        # Given
+        predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
+                                       'B': [0., 0.2, 0.3, 0.4, 1.],
+                                       'C': [0., 1., 0.45, 0.4, 0.3]}).values
+
+        stats_df = pd.DataFrame({'min': [1., -5., -20.],
+                                 'max': [2., 5., 0.],
+                                 'mean': [1.2, -1.2, -11.4],
+                                 'std': [0.4, 3.370460, 6.499231],
+                                 'maxabs': [2., 5., 20.]},
+                                index=['A', 'B', 'C'],
+                                columns=['min', 'max', 'mean', 'std', 'maxabs'])
+
+        method = "standard"
+        interest_vars = [0, 1, 2]
+        mock.return_value = pd.DataFrame(np.random.rand(predicted_data.shape[0], predicted_data.shape[1]))
+
+        # When
+        _ = reverse_scaling(predicted_data, interest_vars, stats_df, method)
+
+        # Check
+        mock.assert_called_once()
+
+    @patch('tsnn.data_utils.reverse_maxabs')
+    def test_reverse_scaling_with_maxabs_method(self, mock):
+
+        # Given
+        predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
+                                       'B': [0., 0.2, 0.3, 0.4, 1.],
+                                       'C': [0., 1., 0.45, 0.4, 0.3]}).values
+
+        stats_df = pd.DataFrame({'min': [1., -5., -20.],
+                                 'max': [2., 5., 0.],
+                                 'mean': [1.2, -1.2, -11.4],
+                                 'std': [0.4, 3.370460, 6.499231],
+                                 'maxabs': [2., 5., 20.]},
+                                index=['A', 'B', 'C'],
+                                columns=['min', 'max', 'mean', 'std', 'maxabs'])
+
+        method = "maxabs"
+        interest_vars = [0, 1, 2]
+        mock.return_value = pd.DataFrame(np.random.rand(predicted_data.shape[0], predicted_data.shape[1]))
+
+        # When
+        _ = reverse_scaling(predicted_data, interest_vars, stats_df, method)
+
+        # Check
+        mock.assert_called_once()
+
+    @patch('tsnn.data_utils.reverse_minmax')
+    def test_reverse_scaling_with_minmax_method(self, mock):
+
+        # Given
+        predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
+                                       'B': [0., 0.2, 0.3, 0.4, 1.],
+                                       'C': [0., 1., 0.45, 0.4, 0.3]}).values
+
+        stats_df = pd.DataFrame({'min': [1., -5., -20.],
+                                 'max': [2., 5., 0.],
+                                 'mean': [1.2, -1.2, -11.4],
+                                 'std': [0.4, 3.370460, 6.499231],
+                                 'maxabs': [2., 5., 20.]},
+                                index=['A', 'B', 'C'],
+                                columns=['min', 'max', 'mean', 'std', 'maxabs'])
+
+        method = "minmax"
+        interest_vars = [0, 1, 2]
+        mock.return_value = pd.DataFrame(np.random.rand(predicted_data.shape[0], predicted_data.shape[1]))
+
+        # When
+        _ = reverse_scaling(predicted_data, interest_vars, stats_df, method)
+
+        # Check
+        mock.assert_called_once()
 
     def test_inputs_targets_split(self):
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2., -1., 1., 1.],
