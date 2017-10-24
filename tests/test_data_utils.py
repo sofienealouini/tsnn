@@ -93,8 +93,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
     def test_reverse_standard_should_return_correct_values_with_partial_dataframe(self):
 
         # Given
-        predicted_data = pd.DataFrame({'B': [-1.5, -0.5, 0.],
-                                       'C': [-1.75, 1.25, 0.5]}).values
+        predicted_data = pd.DataFrame({'B': [-1.5, -0.5, 0.]}).values
 
         stats_df = pd.DataFrame({'min': [1., -5., -20.],
                                  'max': [1., 1., -8.],
@@ -104,11 +103,10 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                 index=['A', 'B', 'C'],
                                 columns=['min', 'max', 'mean', 'std', 'maxabs'])
 
-        expected_reversed_part = pd.DataFrame({'B': [-5., -3., -2.],
-                                               'C': [-20., -8., -11.]}).values
+        expected_reversed_part = pd.DataFrame({'B': [-5., -3., -2.]}).values
 
         # When
-        computed_reversed_part = reverse_standard(predicted_data, [1, 2], stats_df)
+        computed_reversed_part = reverse_standard(predicted_data, [1], stats_df)
 
         # Check
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
