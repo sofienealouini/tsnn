@@ -10,7 +10,7 @@ from tsnn.data_utils import stats, scale_standard, scale_maxabs, scale_minmax, s
 
 class TestDataUtilsFunctions(unittest.TestCase):
 
-    def test_stats(self):
+    def test_stats_should_return_correct_values(self):
 
         # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -32,7 +32,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         assert_equal(stats_df.values, expected_stats.values)
 
     @patch('sklearn.preprocessing.StandardScaler.fit_transform')
-    def test_scale_standard_calls_sklearn_StandardScaler(self, mock):
+    def test_scale_standard_should_call_sklearn_StandardScaler(self, mock):
 
         # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -48,7 +48,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.assert_called_once()
 
     @patch('sklearn.preprocessing.MaxAbsScaler.fit_transform')
-    def test_scale_maxabs_calls_sklearn_MaxAbsScaler(self, mock):
+    def test_scale_maxabs_should_call_sklearn_MaxAbsScaler(self, mock):
 
         # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -64,7 +64,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.assert_called_once()
 
     @patch('sklearn.preprocessing.MinMaxScaler.fit_transform')
-    def test_scale_minmax_calls_sklearn_MinMaxScaler(self, mock):
+    def test_scale_minmax_should_call_sklearn_MinMaxScaler(self, mock):
 
         # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -80,7 +80,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.assert_called_once()
 
     @patch('tsnn.data_utils.scale_standard')
-    def test_scaling_with_standard_method(self, mock):
+    def test_scaling_should_call_scale_standard_if_method_is_standard(self, mock):
 
         # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -96,7 +96,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.assert_called_once()
 
     @patch('tsnn.data_utils.scale_maxabs')
-    def test_scale_with_maxabs_method(self, mock):
+    def test_scaling_should_call_scale_maxabs_if_method_is_maxabs(self, mock):
 
         # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -112,7 +112,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.assert_called_once()
 
     @patch('tsnn.data_utils.scale_minmax')
-    def test_scale_with_minmax_method(self, mock):
+    def test_scaling_should_call_scale_minmax_if_method_is_minmax(self, mock):
 
         # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -127,7 +127,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         mock.assert_called_once()
 
-    def test_reverse_standard_should_return_correct_values_with_all_features_prediction(self):
+    def test_reverse_standard_should_return_correct_values_when_predicting_all_features(self):
 
         # Given
         predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 0.],
@@ -152,7 +152,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
 
-    def test_reverse_standard_should_return_correct_values_with_one_feature_prediction(self):
+    def test_reverse_standard_should_return_correct_values_when_predicting_one_feature(self):
 
         # Given
         predicted_data = np.array([-1.5, -0.5, 0.])
@@ -173,7 +173,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
 
-    def test_reverse_maxabs_should_return_correct_values_with_all_features_prediction(self):
+    def test_reverse_maxabs_should_return_correct_values_when_predicting_all_features(self):
 
         # Given
         predicted_data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
@@ -198,7 +198,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
 
-    def test_reverse_maxabs_should_return_correct_values_with_one_feature_prediction(self):
+    def test_reverse_maxabs_should_return_correct_values_when_predicting_one_feature(self):
 
         # Given
         predicted_data = np.array([-1., -0.6, -0.4])
@@ -219,7 +219,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
 
-    def test_reverse_minmax_should_return_correct_values_with_all_features_prediction(self):
+    def test_reverse_minmax_should_return_correct_values_when_predicting_all_features(self):
 
         # Given
         predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
@@ -244,7 +244,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
 
-    def test_reverse_minmax_should_return_correct_values_with_one_feature_prediction(self):
+    def test_reverse_minmax_should_return_correct_values_when_predicting_one_feature(self):
 
         # Given
         predicted_data = np.array([0., 0.2, 0.3])
@@ -266,7 +266,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
 
     @patch('tsnn.data_utils.reverse_standard')
-    def test_reverse_scaling_with_standard_method(self, mock):
+    def test_reverse_scaling_should_call_reverse_standard_if_method_is_standard(self, mock):
 
         # Given
         predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
@@ -292,7 +292,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.assert_called_once()
 
     @patch('tsnn.data_utils.reverse_maxabs')
-    def test_reverse_scaling_with_maxabs_method(self, mock):
+    def test_reverse_scaling_should_call_reverse_maxabs_if_method_is_maxabs(self, mock):
 
         # Given
         predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
@@ -318,7 +318,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.assert_called_once()
 
     @patch('tsnn.data_utils.reverse_minmax')
-    def test_reverse_scaling_with_minmax_method(self, mock):
+    def test_reverse_scaling_should_call_reverse_minmax_if_method_is_minmax(self, mock):
 
         # Given
         predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
@@ -343,7 +343,45 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         mock.assert_called_once()
 
-    def test_inputs_targets_split(self):
+    def test_train_val_split_should_split_correctly(self):
+
+        # Given
+        target = pd.DataFrame({'B': [10., 1., 1., -3., 0., 10., 12., 14],
+                               'D': [3., 4., 5., -12., -5., -3., -2., -1.],
+                               'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
+        train_ratio = 0.6
+        val_ratio = 0.2
+        expected_limits = ((0, 5), (5, 7), (7, 8))
+
+        # When
+        computed_limits = train_val_split(target, train_ratio, val_ratio)
+
+        # Check
+        self.assertEqual(computed_limits, expected_limits)
+
+    def test_colnames_to_colindices_should_convert_correctly(self):
+
+        # Given
+        origin = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
+                               'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
+                               'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
+                               'D': [-2., 3., 6., 7., 18., 1., 2., 3., 4., 5., -12., -5.],
+                               'E': [10., 0., 10., 12., 14., 10., 0., 0., 0., 0., 0., 1.]})
+
+        target_names = ['B', 'C', 'E']
+        expected_result = [1, 2, 4]
+
+        # When
+        computed_result = colnames_to_colindices(target_names, origin)
+
+        # Check
+        self.assertEqual(computed_result, expected_result)
+
+
+
+
+    ##############
+    def test_inputs_targets_split_should_split_correctly(self):
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2., -1., 1., 1.],
                              'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0., 10., 12., 14],
                              'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20., -8., -11., -12.],
@@ -366,29 +404,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         self.assertEqual(len(computed_inp), 12)
         self.assertEqual(len(computed_tar), 8)
 
-    def test_train_val_split(self):
-        target = pd.DataFrame({'B': [10., 1., 1., -3., 0., 10., 12., 14],
-                               'D': [3., 4., 5., -12., -5., -3., -2., -1.],
-                               'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
-        train_ratio = 0.6
-        val_ratio = 0.2
-        expected_limits = ((0, 5), (5, 7), (7, 8))
-        computed_limits = train_val_split(target, train_ratio, val_ratio)
-
-        self.assertEqual(computed_limits, expected_limits)
-
-    def test_colnames_to_colindices(self):
-        origin = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
-                               'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
-                               'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
-                               'D': [-2., 3., 6., 7., 18., 1., 2., 3., 4., 5., -12., -5.],
-                               'E': [10., 0., 10., 12., 14., 10., 0., 0., 0., 0., 0., 1.]})
-
-        target_names = ['B', 'C', 'E']
-        expected_result = [1, 2, 4]
-        computed_result = colnames_to_colindices(target_names, origin)
-        self.assertEqual(computed_result, expected_result)
-
+    ##############
     def test_sample_gen_rnn(self):
         inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
                                'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
@@ -429,3 +445,48 @@ class TestDataUtilsFunctions(unittest.TestCase):
         assert_equal(computed_ybatch, expected_ybatch)
         self.assertEqual(len(last_batch_x), 1)
         self.assertEqual(len(last_batch_y), 1)
+
+    ##############
+    def test_sample_gen_rnn_should_yield_all_batches_when_limits_are_not_given(self):
+        inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
+                               'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
+                               'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
+                               'D': [-2., 3., 6., 7., 18., 1., 2., 3., 4., 5., -12., -5.],
+                               'E': [10., 0., 10., 12., 14., 10., 0., 0., 0., 0., 0., 1.]})
+
+        targets = pd.DataFrame({'B': [10., 1., 1., -3., 0., 10., 12., 14],
+                                'D': [3., 4., 5., -12., -5., -3., -2., -1.],
+                                'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
+
+        gen = sample_gen_rnn(inputs, targets,
+                             samples_length=5,
+                             sampling_step=1,
+                             batch_size=2)
+
+        computed_xbatch, computed_ybatch = next(gen)
+
+        expected_xbatch = np.array([[[1., -5., -20., -2., 10.],
+                                     [1., -3., -8., 3., 0.],
+                                     [1., -2., -11., 6., 10.],
+                                     [1., -1., -12., 7., 12.],
+                                     [1., 1., -14., 18., 14.]],
+                                    [[1., -3., -8., 3., 0.],
+                                     [1., -2., -11., 6., 10.],
+                                     [1., -1., -12., 7., 12.],
+                                     [1., 1., -14., 18., 14.],
+                                     [14., 1., 0., 1., 10.]]])
+        expected_ybatch = np.array([[10., 3., 0.],
+                                    [1., 4., 0.]])
+
+        last_batch_x, last_batch_y = None, None
+        for i in range(2):
+            last_batch_x, last_batch_y = next(gen)
+
+        assert_equal(computed_xbatch, expected_xbatch)
+        assert_equal(computed_ybatch, expected_ybatch)
+        self.assertEqual(len(last_batch_x), 1)
+        self.assertEqual(len(last_batch_y), 1)
+
+    ##############
+    def test_sample_gen_rnn_should_yield_correct_batch_at_dataframe_end(self):
+        pass
