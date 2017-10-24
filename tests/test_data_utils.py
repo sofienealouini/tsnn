@@ -1,4 +1,5 @@
 import unittest
+import mock
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_equal, assert_almost_equal
@@ -61,10 +62,15 @@ class TestDataUtilsFunctions(unittest.TestCase):
         computed_scaled, _ = scale_minmax(data)
         assert_almost_equal(computed_scaled.values, expected_scaled.values)
 
-    def test_reverse_standard(self):
-        data = pd.DataFrame({'A': [0., 0., 0., 0., 0.],
-                             'B': [-1.5, -0.5, 0., 0.5, 1.5],
-                             'C': [-1.75, 1.25, 0.5, 0.25, -0.25]}).values
+    def test_scale(self):
+        pass
+
+    def test_reverse_standard_should_return_correct_values_with_entire_dataframe(self):
+
+        # Given
+        predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 0.],
+                                       'B': [-1.5, -0.5, 0., 0.5, 1.5],
+                                       'C': [-1.75, 1.25, 0.5, 0.25, -0.25]}).values
 
         stats_df = pd.DataFrame({'min': [1., -5., -20.],
                                  'max': [1., 1., -8.],
@@ -78,18 +84,41 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                               'B': [-5., -3., -2., -1., 1.],
                                               'C': [-20., -8., -11., -12., -14.]}).values
 
-        expected_reversed_part = expected_reversed_all[:3, 1:3]
+        # When
+        computed_reversed_all = reverse_standard(predicted_data, [0, 1, 2], stats_df)
 
-        computed_reversed_all = reverse_standard(data, [0, 1, 2], stats_df)
-        computed_reversed_part = reverse_standard(data[:3, 1:3], [1, 2], stats_df)
-
+        # Check
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
+
+    def test_reverse_standard_should_return_correct_values_with_partial_dataframe(self):
+
+        # Given
+        predicted_data = pd.DataFrame({'B': [-1.5, -0.5, 0.],
+                                       'C': [-1.75, 1.25, 0.5]}).values
+
+        stats_df = pd.DataFrame({'min': [1., -5., -20.],
+                                 'max': [1., 1., -8.],
+                                 'mean': [1., -2., -13.],
+                                 'std': [0., 2., 4.],
+                                 'maxabs': [1., 5., 20.]},
+                                index=['A', 'B', 'C'],
+                                columns=['min', 'max', 'mean', 'std', 'maxabs'])
+
+        expected_reversed_part = pd.DataFrame({'B': [-5., -3., -2.],
+                                               'C': [-20., -8., -11.]}).values
+
+        # When
+        computed_reversed_part = reverse_standard(predicted_data, [1, 2], stats_df)
+
+        # Check
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
 
-    def test_reverse_maxabs(self):
-        data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
-                             'B': [-1., -0.6, -0.4, -0.2, 0.2],
-                             'C': [-1., -0.4, -0.55, -0.6, -0.7]}).values
+    def test_reverse_maxabs_should_return_correct_values_with_entire_dataframe(self):
+
+        # Given
+        predicted_data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
+                                       'B': [-1., -0.6, -0.4, -0.2, 0.2],
+                                       'C': [-1., -0.4, -0.55, -0.6, -0.7]}).values
 
         stats_df = pd.DataFrame({'min': [1., -5., -20.],
                                  'max': [1., 1., -8.],
@@ -103,18 +132,41 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                               'B': [-5., -3., -2., -1., 1.],
                                               'C': [-20., -8., -11., -12., -14.]}).values
 
-        expected_reversed_part = expected_reversed_all[:3, 1:3]
+        # When
+        computed_reversed_all = reverse_maxabs(predicted_data, [0, 1, 2], stats_df)
 
-        computed_reversed_all = reverse_maxabs(data, [0, 1, 2], stats_df)
-        computed_reversed_part = reverse_maxabs(data[:3, 1:3], [1, 2], stats_df)
-
+        # Check
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
+
+    def test_reverse_maxabs_should_return_correct_values_with_partial_dataframe(self):
+
+        # Given
+        predicted_data = pd.DataFrame({'B': [-1., -0.6, -0.4],
+                                       'C': [-1., -0.4, -0.55]}).values
+
+        stats_df = pd.DataFrame({'min': [1., -5., -20.],
+                                 'max': [1., 1., -8.],
+                                 'mean': [1., -2., -13.],
+                                 'std': [0., 2., 4.],
+                                 'maxabs': [1., 5., 20.]},
+                                index=['A', 'B', 'C'],
+                                columns=['min', 'max', 'mean', 'std', 'maxabs'])
+
+        expected_reversed_part = pd.DataFrame({'B': [-5., -3., -2.],
+                                              'C': [-20., -8., -11.]}).values
+
+        # When
+        computed_reversed_part = reverse_maxabs(predicted_data, [1, 2], stats_df)
+
+        # Check
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
 
-    def test_reverse_minmax(self):
-        data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
-                             'B': [0., 0.2, 0.3, 0.4, 1.],
-                             'C': [0., 1., 0.45, 0.4, 0.3]}).values
+    def test_reverse_minmax_should_return_correct_values_with_entire_dataframe(self):
+
+        # Given
+        predicted_data = pd.DataFrame({'A': [0., 0., 0., 0., 1.],
+                                       'B': [0., 0.2, 0.3, 0.4, 1.],
+                                       'C': [0., 1., 0.45, 0.4, 0.3]}).values
 
         stats_df = pd.DataFrame({'min': [1., -5., -20.],
                                  'max': [2., 5., 0.],
@@ -127,13 +179,38 @@ class TestDataUtilsFunctions(unittest.TestCase):
         expected_reversed_all = pd.DataFrame({'A': [1., 1., 1., 1., 2.],
                                               'B': [-5., -3., -2., -1., 5.],
                                               'C': [-20., 0., -11., -12., -14.]}).values
-        expected_reversed_part = expected_reversed_all[:3, 1:3]
 
-        computed_reversed_all = reverse_minmax(data, [0, 1, 2], stats_df)
-        computed_reversed_part = reverse_minmax(data[:3, 1:3], [1, 2], stats_df)
+        # When
+        computed_reversed_all = reverse_minmax(predicted_data, [0, 1, 2], stats_df)
 
+        # Check
         assert_almost_equal(computed_reversed_all, expected_reversed_all)
+
+    def test_reverse_minmax_should_return_correct_values_with_partial_dataframe(self):
+
+        # Given
+        predicted_data = pd.DataFrame({'B': [0., 0.2, 0.3],
+                                       'C': [0., 1., 0.45]}).values
+
+        stats_df = pd.DataFrame({'min': [1., -5., -20.],
+                                 'max': [2., 5., 0.],
+                                 'mean': [1.2, -1.2, -11.4],
+                                 'std': [0.4, 3.370460, 6.499231],
+                                 'maxabs': [2., 5., 20.]},
+                                index=['A', 'B', 'C'],
+                                columns=['min', 'max', 'mean', 'std', 'maxabs'])
+
+        expected_reversed_part = pd.DataFrame({'B': [-5., -3., -2.],
+                                              'C': [-20., 0., -11.]}).values
+
+        # When
+        computed_reversed_part = reverse_minmax(predicted_data, [1, 2], stats_df)
+
+        # Check
         assert_almost_equal(computed_reversed_part, expected_reversed_part)
+
+    def test_reverse_scaling(self):
+        pass
 
     def test_inputs_targets_split(self):
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2., -1., 1., 1.],

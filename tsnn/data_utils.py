@@ -239,6 +239,3 @@ def sample_gen_rnn(scaled_inputs,
         if inp_row >= limits[1]:
             inp_row = limits[0]
             tar_row = limits[0]
-
-
-###### GENERATEUR pour les X seuls

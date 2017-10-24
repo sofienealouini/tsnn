@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='tsnn',
-    version='0.0.20',
+    version='0.1.0',
     author='Sofiene Alouini',
     author_email='sofiene.alouini@gmail.com',
     url='https://github.com/sofienealouini/tsnn',
@@ -24,6 +24,7 @@ setup(
         'pandas >= 0.20.0',
         'scikit-learn >= 0.19.0',
         'tensorflow >= 1.3.0',
-        'keras >= 2.0.8'
+        'keras >= 2.0.8',
+        'mock >= 2.0.0'
       ]
 )
