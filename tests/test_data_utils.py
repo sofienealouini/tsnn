@@ -466,30 +466,6 @@ class TestDataUtilsFunctions(unittest.TestCase):
             assert_equal(computed_xbatch, expected_xbatch)
             assert_equal(computed_ybatch, expected_ybatch)
 
-    def test_sample_gen_rnn_should_reach_dataframe_end(self):
-
-        # Given
-        inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
-                               'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
-                               'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
-                               'D': [-2., 3., 6., 7., 18., 1., 2., 3., 4., 5., -12., -5.],
-                               'E': [10., 0., 10., 12., 14., 10., 0., 0., 0., 0., 0., 1.]})
-
-        targets = pd.DataFrame({'B': [10., 1., 1., -3., 0., 10., 12., 14],
-                                'D': [3., 4., 5., -12., -5., -3., -2., -1.],
-                                'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
-
-        gen = sample_gen_rnn(inputs, targets, limits=(0, 8), samples_length=5, sampling_step=1, batch_size=3)
-
-        # When
-        last_batch_x, last_batch_y = None, None
-        for i in range(3):
-            last_batch_x, last_batch_y = next(gen)
-
-        # Check
-        self.assertEqual(last_batch_x.shape, (2, 5, 5))
-        self.assertEqual(last_batch_y.shape, (2, 3))
-
     def test_sample_gen_rnn_should_yield_only_xbatch_if_inputs_only_set_true(self):
 
         # Given
@@ -522,6 +498,30 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         self.assertIsInstance(res, np.ndarray)
         assert_equal(res, expected_xbatch)
+
+    def test_sample_gen_rnn_should_reach_dataframe_end(self):
+
+        # Given
+        inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
+                               'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
+                               'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
+                               'D': [-2., 3., 6., 7., 18., 1., 2., 3., 4., 5., -12., -5.],
+                               'E': [10., 0., 10., 12., 14., 10., 0., 0., 0., 0., 0., 1.]})
+
+        targets = pd.DataFrame({'B': [10., 1., 1., -3., 0., 10., 12., 14],
+                                'D': [3., 4., 5., -12., -5., -3., -2., -1.],
+                                'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
+
+        gen = sample_gen_rnn(inputs, targets, limits=(0, 8), samples_length=5, sampling_step=1, batch_size=3)
+
+        # When
+        last_batch_x, last_batch_y = None, None
+        for i in range(3):
+            last_batch_x, last_batch_y = next(gen)
+
+        # Check
+        self.assertEqual(last_batch_x.shape, (2, 5, 5))
+        self.assertEqual(last_batch_y.shape, (2, 3))
 
     def test_sample_gen_rnn_should_reset_when_reaching_dataframe_end(self):
         # Given

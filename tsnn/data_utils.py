@@ -170,6 +170,7 @@ def train_val_split(targets, train_ratio=0.6, val_ratio=0.2):
     :param pred_length: int - number of predicted timesteps, starting at t+pred_delay. Default = 1
     :return: tuple of 3 int-tuples - (train_start, train_end), (val_start, val_end), (test_start, test_end)
     """
+
     train_start = 0
     train_end = round(train_ratio * len(targets))
     val_start = train_end
