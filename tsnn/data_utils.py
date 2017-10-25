@@ -204,7 +204,7 @@ def sample_gen_rnn(scaled_inputs,
     :param scaled_targets: pandas.DataFrame - targets obtained from inputs_targets_split()
     :param limits: int tuple - (start_row, end_row) : start and end rows, one of train_val_split() results
     :param samples_length: int - time window size (timesteps) for the RNN. Default = 168
-    :param sampling_step: int - stride used when extracting time windows. Default = 1 (no position skipped)
+    :param sampling_step: int - step of the sliding time window. Default = 1 (no position skipped)
     :param batch_size: int - batch size for mini-batch gradient descent. Default = 24
     :param inputs_only: boolean - whether the generator yields inputs only or (inputs, targets). 
         - Set to False if using fit_generator or evaluate_generator
