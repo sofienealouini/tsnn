@@ -3,12 +3,12 @@ from unittest.mock import patch
 import numpy as np
 from numpy.testing import assert_equal
 import keras.backend as K
-from tsnn.models.lstnet import autoreg_prep, gru_skip_prep
+from tsnn.models.lstnet import autoreg_prep, gru_skip_prep, LSTNet
 
 
-class TestDataUtilsFunctions(unittest.TestCase):
+class TestLSTNetModel(unittest.TestCase):
 
-    def test_autoreg_prep_returns_correct_tensor(self):
+    def test_autoreg_prep_should_return_correct_tensor(self):
 
         # Given
         batch = np.zeros((64, 168, 3))
@@ -33,7 +33,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         assert_equal(computed_batch, expected_batch)
 
-    def test_gru_skip_prep(self):
+    def test_gru_skip_prep_should_return_correct_tensor(self):
 
         # Given
         batch = np.zeros((64, 163, 100))
@@ -58,3 +58,32 @@ class TestDataUtilsFunctions(unittest.TestCase):
 
         # Check
         assert_equal(computed_batch, expected_batch)
+
+    def test_LSTNet_should_have_correct_tensor_shapes(self):
+
+        # Given
+        expected_shapes = [(None, 168, 321),
+                           (None, 168, 321, 1),
+                           (None, 163, 1, 100),
+                           (None, 163, 1, 100),
+                           (None, 163, 100),
+                           (None, 6, 100),
+                           (None, 5),
+                           (None, 100),
+                           (None, 120),
+                           (None, 24),
+                           (None, 220),
+                           (None, 1),
+                           (None, 5),
+                           (None, 5),
+                           (None, 5)]
+
+        # When
+        model = LSTNet((168, 321), [0, 6, 11, 36, 315])
+        computed_shapes = [l.get_output_shape_at(node_index=0) for l in model.layers]
+
+        # Check
+        self.assertEqual(computed_shapes, expected_shapes)
+
+    def test_LSTNet_should_call_layers_in_order(self):
+        pass
