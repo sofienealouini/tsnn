@@ -38,7 +38,6 @@ class LSTNet(Model):
 
         self.main_input = Input(shape=input_shape, name="Main_input")
         timesteps, nb_input_features = input_shape
-        possible_jumps = (timesteps - cnn_kernel_height) // gru_skip_step
 
         # Check parameters
 
@@ -60,7 +59,7 @@ class LSTNet(Model):
                   name="GRU")(conv)
 
         # Recurrent-skip layer
-        skip_rec = Lambda(lambda x: gru_skip_prep(x, possible_jumps, gru_skip_step, cnn_filters),
+        skip_rec = Lambda(lambda x: gru_skip_prep(x, gru_skip_step),
                           name="GRU_skip_inp_prep")(conv)
         skip_rec = GRU(units=gru_skip_units,
                        activation=gru_skip_activation,
@@ -92,10 +91,10 @@ class LSTNet(Model):
 def autoreg_prep(x, ar_window, interest_vars):
         """Batch transformations in order to perform autoregression.
         
-        :param x: numpy.ndarray (3D) - batch of inputs (batch_size, timesteps, nb_features)
+        :param x: keras.backend.Tensor (3D) - batch of inputs (batch_size, timesteps, nb_features)
         :param ar_window: int - number of past values to use as predictors for autoregression
         :param interest_vars: interest_vars: list of ints - indices of the features to predict (in the input matrix)
-        :return: numpy.ndarray (2D) - data formatted for autoregression
+        :return: keras.backend.Tensor (2D)  - data formatted for autoregression
         """
         predictors_window = x[:, -ar_window:, :]
         perm_1 = K.permute_dimensions(predictors_window, [2, 1, 0])
@@ -105,15 +104,15 @@ def autoreg_prep(x, ar_window, interest_vars):
         return reshaped
 
 
-def gru_skip_prep(conv_x, possible_jumps, gru_skip_step, cnn_filters):
+def gru_skip_prep(conv_x, gru_skip_step):
         """Batch transformations for the recurrent-skip layer.
         
-        :param conv_x: numpy.ndarray - output of the convolutional layer
-        :param possible_jumps: int - number of possible jumps in the past, considering timesteps and gru_skip_step.
+        :param conv_x: keras.backend.Tensor - output of the convolutional layer
         :param gru_skip_step: int - skipped timesteps in the recurrent-skip layer.
-        :param cnn_filters: int - number of filters in the convolutional layer.
-        :return: numpy.ndarray (3D) - data formatted for recurrent-skip layer.
+        :return: keras.backend.Tensor (3D) - data formatted for recurrent-skip layer.
         """
+        cnn_filters = conv_x.shape[2]
+        possible_jumps = conv_x.shape[1] // gru_skip_step
         jumps_window = conv_x[:, -possible_jumps * gru_skip_step:, :]
         reshaped_window = K.reshape(jumps_window, (-1, possible_jumps, gru_skip_step, cnn_filters))
         permuted_columns = K.permute_dimensions(reshaped_window, [0, 2, 1, 3])
