@@ -377,12 +377,9 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         self.assertEqual(computed_result, expected_result)
 
-
-
-
-    ##############
-    '''
     def test_inputs_targets_split_should_split_correctly(self):
+
+        # Given
         data = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2., -1., 1., 1.],
                              'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0., 10., 12., 14],
                              'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20., -8., -11., -12.],
@@ -393,21 +390,21 @@ class TestDataUtilsFunctions(unittest.TestCase):
         samples_length = 5
         pred_delay = 3
         pred_length = 1
+
+        # When
         computed_inp, computed_tar = inputs_targets_split(data, input_cols, target_cols,
                                                           samples_length, pred_delay, pred_length)
         expected_inp = data.iloc[:-3]
         expected_tar = data[['B', 'D', 'E']].iloc[7:]
 
+        # Check
         assert_equal(computed_inp.values, expected_inp.values)
         assert_equal(computed_tar.values, expected_tar.values)
-        assert_equal(computed_tar[['D']].iloc[-1, 0], -1.)
-        self.assertEqual(computed_inp[['B']].iloc[7, 0], computed_tar[['B']].iloc[0, 0])
-        self.assertEqual(len(computed_inp), 12)
-        self.assertEqual(len(computed_tar), 8)'''
+        assert_equal(computed_inp[['B', 'D', 'E']].iloc[7].values, computed_tar.iloc[0].values)
 
-    ##############
-    '''
-    def test_sample_gen_rnn(self):
+    def test_sample_gen_rnn_should_yield_correct_batch_when_limits_are_given(self):
+
+        # Given
         inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
                                'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
                                'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
@@ -417,14 +414,6 @@ class TestDataUtilsFunctions(unittest.TestCase):
         targets = pd.DataFrame({'B': [10., 1., 1., -3., 0., 10., 12., 14],
                                 'D': [3., 4., 5., -12., -5., -3., -2., -1.],
                                 'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
-
-        gen = sample_gen_rnn(inputs, targets,
-                             limits=(0, 5),
-                             samples_length=5,
-                             sampling_step=1,
-                             batch_size=2)
-
-        computed_xbatch, computed_ybatch = next(gen)
 
         expected_xbatch = np.array([[[1., -5., -20., -2., 10.],
                                      [1., -3., -8., 3., 0.],
@@ -436,22 +425,22 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                      [1., -1., -12., 7., 12.],
                                      [1., 1., -14., 18., 14.],
                                      [14., 1., 0., 1., 10.]]])
+
         expected_ybatch = np.array([[10., 3., 0.],
                                     [1., 4., 0.]])
 
-        last_batch_x, last_batch_y = None, None
-        for i in range(2):
-            last_batch_x, last_batch_y = next(gen)
+        gen = sample_gen_rnn(inputs, targets, limits=(0, 5), samples_length=5, sampling_step=1, batch_size=2)
 
+        # When
+        computed_xbatch, computed_ybatch = next(gen)
+
+        # Check
         assert_equal(computed_xbatch, expected_xbatch)
         assert_equal(computed_ybatch, expected_ybatch)
-        self.assertEqual(len(last_batch_x), 1)
-        self.assertEqual(len(last_batch_y), 1)
-        '''
 
-    ##############
-    '''
     def test_sample_gen_rnn_should_yield_all_batches_when_limits_are_not_given(self):
+        
+        # Given
         inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
                                'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
                                'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
@@ -462,35 +451,41 @@ class TestDataUtilsFunctions(unittest.TestCase):
                                 'D': [3., 4., 5., -12., -5., -3., -2., -1.],
                                 'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
 
-        gen = sample_gen_rnn(inputs, targets,
-                             samples_length=5,
-                             sampling_step=1,
-                             batch_size=2)
+        expected_gen = sample_gen_rnn(inputs, targets, limits=(0, 8), samples_length=5, sampling_step=1, batch_size=3)
 
-        computed_xbatch, computed_ybatch = next(gen)
+        gen = sample_gen_rnn(inputs, targets, samples_length=5, sampling_step=1, batch_size=3)
 
-        expected_xbatch = np.array([[[1., -5., -20., -2., 10.],
-                                     [1., -3., -8., 3., 0.],
-                                     [1., -2., -11., 6., 10.],
-                                     [1., -1., -12., 7., 12.],
-                                     [1., 1., -14., 18., 14.]],
-                                    [[1., -3., -8., 3., 0.],
-                                     [1., -2., -11., 6., 10.],
-                                     [1., -1., -12., 7., 12.],
-                                     [1., 1., -14., 18., 14.],
-                                     [14., 1., 0., 1., 10.]]])
-        expected_ybatch = np.array([[10., 3., 0.],
-                                    [1., 4., 0.]])
+        for i in range(3):
+            # Given
+            expected_xbatch, expected_ybatch = next(expected_gen)
 
+            # When
+            computed_xbatch, computed_ybatch = next(gen)
+
+            # Check
+            assert_equal(computed_xbatch, expected_xbatch)
+            assert_equal(computed_ybatch, expected_ybatch)
+
+    def test_sample_gen_rnn_should_reach_dataframe_end(self):
+
+        # Given
+        inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
+                               'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
+                               'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
+                               'D': [-2., 3., 6., 7., 18., 1., 2., 3., 4., 5., -12., -5.],
+                               'E': [10., 0., 10., 12., 14., 10., 0., 0., 0., 0., 0., 1.]})
+
+        targets = pd.DataFrame({'B': [10., 1., 1., -3., 0., 10., 12., 14],
+                                'D': [3., 4., 5., -12., -5., -3., -2., -1.],
+                                'E': [0., 0., 0., 0., 1., 1., 1., 1.]})
+
+        gen = sample_gen_rnn(inputs, targets, limits=(0, 8), samples_length=5, sampling_step=1, batch_size=3)
+
+        # When
         last_batch_x, last_batch_y = None, None
-        for i in range(2):
+        for i in range(3):
             last_batch_x, last_batch_y = next(gen)
 
-        assert_equal(computed_xbatch, expected_xbatch)
-        assert_equal(computed_ybatch, expected_ybatch)
-        self.assertEqual(len(last_batch_x), 1)
-        self.assertEqual(len(last_batch_y), 1)'''
-
-    ##############
-    def test_sample_gen_rnn_should_yield_correct_batch_at_dataframe_end(self):
-        pass
+        # Check
+        self.assertEqual(last_batch_x.shape, (2, 5, 5))
+        self.assertEqual(last_batch_y.shape, (2, 3))

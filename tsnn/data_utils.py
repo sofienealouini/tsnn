@@ -193,7 +193,7 @@ def colnames_to_colindices(interest_cols, original_df):
 
 def sample_gen_rnn(scaled_inputs,
                    scaled_targets,
-                   limits=(None, None),
+                   limits=None,
                    samples_length=168,
                    sampling_step=1,
                    batch_size=24,
@@ -211,10 +211,8 @@ def sample_gen_rnn(scaled_inputs,
         - Set to True if using predict_generator
     :yield: tuple - (input_batch, target_batch)
     """
-    if limits[0] is None:
-        limits[0] = 0
-    if limits[1] is None:
-        limits[1] = len(scaled_targets)
+    if limits is None:
+        limits = (0, len(scaled_targets))
 
     inp_row = limits[0]
     tar_row = limits[0]
