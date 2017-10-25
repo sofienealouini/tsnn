@@ -111,8 +111,8 @@ def gru_skip_prep(conv_x, gru_skip_step):
         :param gru_skip_step: int - skipped timesteps in the recurrent-skip layer.
         :return: keras.backend.Tensor (3D) - data formatted for recurrent-skip layer.
         """
-        cnn_filters = conv_x.shape[2]
-        possible_jumps = conv_x.shape[1] // gru_skip_step
+        cnn_filters = int(conv_x.shape[2])
+        possible_jumps = int(conv_x.shape[1]) // gru_skip_step
         jumps_window = conv_x[:, -possible_jumps * gru_skip_step:, :]
         reshaped_window = K.reshape(jumps_window, (-1, possible_jumps, gru_skip_step, cnn_filters))
         permuted_columns = K.permute_dimensions(reshaped_window, [0, 2, 1, 3])
