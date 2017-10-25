@@ -5,7 +5,7 @@ import pandas as pd
 from numpy.testing import assert_equal, assert_almost_equal
 from tsnn.data_utils import stats, scale_standard, scale_maxabs, scale_minmax, scaling, \
     reverse_standard, reverse_maxabs, reverse_minmax, reverse_scaling,\
-    inputs_targets_split, train_val_split, colnames_to_colindices, sample_gen_rnn
+    inputs_targets_split, train_val_split, colnames_to_colindices, sample_gen_rnn, compute_generator_steps
 
 
 class TestDataUtilsFunctions(unittest.TestCase):
@@ -90,7 +90,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.return_value = (0, 42)
 
         # When
-        scaling(data, method)
+        computed_scaled, stats_df = scaling(data, method)
 
         # Check
         mock.assert_called_once()
@@ -106,7 +106,7 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.return_value = (0, 42)
 
         # When
-        scaling(data, method)
+        computed_scaled, stats_df = scaling(data, method)
 
         # Check
         mock.assert_called_once()
@@ -122,9 +122,25 @@ class TestDataUtilsFunctions(unittest.TestCase):
         mock.return_value = (0, 42)
 
         # When
-        scaling(data, method)
+        computed_scaled, stats_df = scaling(data, method)
 
         # Check
+        mock.assert_called_once()
+
+    @patch('tsnn.data_utils.stats')
+    def test_scaling_should_return_original_df_and_stats_if_method_is_emptystring(self, mock):
+
+        # Given
+        data = pd.DataFrame({'A': [1., 1., 1., 1., 1.],
+                             'B': [-5., -3., -2., -1., 1.],
+                             'C': [-20., -8., -11., -12., -14.]})
+        method = ""
+
+        # When
+        computed_scaled, stats_df = scaling(data, method)
+
+        # Check
+        assert_equal(computed_scaled.values, data.values)
         mock.assert_called_once()
 
     def test_reverse_standard_should_return_correct_values_when_predicting_all_features(self):
@@ -523,7 +539,8 @@ class TestDataUtilsFunctions(unittest.TestCase):
         self.assertEqual(last_batch_x.shape, (2, 5, 5))
         self.assertEqual(last_batch_y.shape, (2, 3))
 
-    def test_sample_gen_rnn_should_reset_when_reaching_dataframe_end(self):
+    def test_sample_gen_rnn_should_reset_after_reaching_dataframe_end(self):
+
         # Given
         inputs = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
                                'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
@@ -545,3 +562,21 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         self.assertEqual(last_batch_x.shape, (3, 5, 5))
         self.assertEqual(last_batch_y.shape, (3, 3))
+
+    def test_compute_generator_steps_should_return_correct_value(self):
+
+        # Given
+        data = pd.DataFrame(np.random.randn(26304, 321))
+        idx = (0, 15668)
+        sampling_step_1 = 1
+        sampling_step_2 = 4
+        batch_size = 64
+
+        # When
+        computed_steps_1 = compute_generator_steps(idx, sampling_step_1, batch_size)
+        computed_steps_2 = compute_generator_steps(idx, sampling_step_2, batch_size)
+
+        # Check
+        self.assertEqual(computed_steps_1, 245)
+        self.assertEqual(computed_steps_2, 62)
+
