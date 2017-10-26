@@ -1,7 +1,4 @@
 import unittest
-from unittest.mock import patch
-import numpy as np
-import keras.backend as K
 from tsnn.models.deeprec import DeepRecurrent
 
 
