@@ -1,11 +1,11 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, call, Mock, ANY
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_equal, assert_almost_equal
 from tsnn.data_utils import stats, scale_standard, scale_maxabs, scale_minmax, scaling, \
-    reverse_standard, reverse_maxabs, reverse_minmax, reverse_scaling,\
-    inputs_targets_split, train_val_split, colnames_to_colindices, sample_gen_rnn, compute_generator_steps
+    reverse_standard, reverse_maxabs, reverse_minmax, reverse_scaling, inputs_targets_split, train_val_split, \
+    colnames_to_colindices, sample_gen_rnn, compute_generator_steps, prepare_data_generators
 
 
 class TestDataUtilsFunctions(unittest.TestCase):
@@ -580,3 +580,46 @@ class TestDataUtilsFunctions(unittest.TestCase):
         self.assertEqual(computed_steps_1, 245)
         self.assertEqual(computed_steps_2, 62)
 
+    @patch('tsnn.data_utils.scaling')
+    @patch('tsnn.data_utils.inputs_targets_split')
+    @patch('tsnn.data_utils.train_val_split')
+    @patch('tsnn.data_utils.sample_gen_rnn')
+    @patch('tsnn.data_utils.compute_generator_steps')
+    def test_prepare_data_generators_should_call_functions_in_order(self,
+                                                                    mock_compute_generator_steps,
+                                                                    mock_sample_gen_rnn,
+                                                                    mock_train_val_split,
+                                                                    mock_inputs_targets_split,
+                                                                    mock_scaling):
+
+        # Given
+        mock_train_val_split.return_value = ((0, 16000), (16000, 20000), (20000, 26304))
+        mock_sample_gen_rnn.return_value = "generator"
+        mock_compute_generator_steps.return_value = 42
+        mock_scaling.return_value = (pd.DataFrame(np.random.randn(26304, 321)), pd.DataFrame(np.random.randn(321, 5)))
+        mock_inputs_targets_split.return_value = (pd.DataFrame(np.random.randn(26280, 321)),
+                                                  pd.DataFrame(np.random.randn(26113, 3)))
+
+        manager = Mock()
+        manager.attach_mock(mock_scaling, 'scaling')
+        manager.attach_mock(mock_inputs_targets_split, 'inputs_targets_split')
+        manager.attach_mock(mock_train_val_split, 'train_val_split')
+        manager.attach_mock(mock_sample_gen_rnn, 'sample_gen_rnn')
+        manager.attach_mock(mock_compute_generator_steps, 'compute_generator_steps')
+
+        expected_calls = [call.scaling(ANY, ANY),
+                          call.inputs_targets_split(ANY, ANY, ANY, ANY, ANY, ANY),
+                          call.train_val_split(ANY, ANY, ANY),
+                          call.sample_gen_rnn(ANY, ANY, ANY, ANY, ANY, ANY, ANY),
+                          call.compute_generator_steps(ANY, ANY, ANY),
+                          call.sample_gen_rnn(ANY, ANY, ANY, ANY, ANY, ANY, ANY),
+                          call.compute_generator_steps(ANY, ANY, ANY),
+                          call.sample_gen_rnn(ANY, ANY, ANY, ANY, ANY, ANY, ANY),
+                          call.compute_generator_steps(ANY, ANY, ANY)]
+
+        # When
+        generators_dict, stats_df = prepare_data_generators(raw_data=pd.DataFrame(np.random.randn(26304, 321)),
+                                                            input_cols=[], target_cols=[0, 6, 36])
+
+        # Check
+        self.assertEqual(manager.mock_calls, expected_calls)
