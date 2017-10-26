@@ -623,3 +623,76 @@ class TestDataUtilsFunctions(unittest.TestCase):
 
         # Check
         self.assertEqual(manager.mock_calls, expected_calls)
+
+    def test_prepare_data_generators_should_return_correct_results(self):
+
+        # Given
+        data = pd.DataFrame({'A': [1., 1., 1., 1., 1., 14., 20., -10., 12., 1., 3., -2.],
+                             'B': [-5., -3., -2., -1., 1., 1., 0., 10., 1., 1., -3., 0.],
+                             'C': [-20., -8., -11., -12., -14., 0., 0., 0., 0., 0., 7., -20.],
+                             'D': [-2., 3., 6., 7., 20., 1., 2., 3., 4., 5., -12., -5.],
+                             'E': [10., 0., 10., 12., 50., 10., 0., 0., 0., 0., 0., 1.]})
+
+        expected_first_train_x = np.array([[[0.05, -0.5, -1., -0.1, 0.2],
+                                            [0.05, -0.3, -0.4, 0.15, 0.],
+                                            [0.05, -0.2, -0.55, 0.3, 0.2],
+                                            [0.05, -0.1, -0.6, 0.35, 0.24],
+                                            [0.05, 0.1, -0.7, 1., 1.]],
+                                           [[0.05, -0.3, -0.4, 0.15, 0.],
+                                            [0.05, -0.2, -0.55, 0.3, 0.2],
+                                            [0.05, -0.1, -0.6, 0.35, 0.24],
+                                            [0.05, 0.1, -0.7, 1., 1.],
+                                            [0.7, 0.1, 0., 0.05, 0.2]]])
+
+        expected_first_train_y = np.array([[-0.5, 1., 0.],
+                                           [0.6, 0.1, 0.]])
+
+        expected_first_val_x = np.array(([[[0.05, -0.1, -0.6, 0.35, 0.24],
+                                           [0.05, 0.1, -0.7, 1., 1.],
+                                           [0.7, 0.1, 0., 0.05, 0.2],
+                                           [1., 0., 0., 0.1, 0.],
+                                           [-0.5, 1., 0., 0.15, 0.]]]))
+
+        expected_first_val_y = np.array([[0.15, -0.3, 0.]])
+
+        expected_first_test_x = np.array([[[0.05, 0.1, -0.7, 1., 1.],
+                                           [0.7, 0.1, 0., 0.05, 0.2],
+                                           [1., 0., 0., 0.1 , 0.],
+                                           [-0.5, 1., 0., 0.15, 0.],
+                                           [0.6, 0.1, 0., 0.2, 0.]]])
+        expected_first_test_y = np.array([[-0.1, 0., 0.02]])
+
+        expected_stats_df = pd.DataFrame(np.array([[-10., 20., 3.583333, 7.664402, 20.],
+                                                   [-5., 10., 0., 3.559026, 10.],
+                                                   [-20., 7., -6.5, 8.5, 20.],
+                                                   [-12., 20., 2.666667, 7.283924, 20.],
+                                                   [0., 50., 7.75, 13.614484, 50.]]),
+                                         index=data.columns,
+                                         columns=['min', 'max', 'mean', 'std', 'maxabs'])
+
+        # When
+        generators_dict, computed_stats_df = prepare_data_generators(raw_data=data,
+                                                                     input_cols=[],
+                                                                     target_cols=['A', 'B', 'E'],
+                                                                     scaling_method="maxabs",
+                                                                     samples_length=5, pred_delay=3, batch_size=2)
+        computed_train_gen, train_steps = generators_dict["train"]
+        computed_val_gen, val_steps = generators_dict["val"]
+        computed_test_gen, test_steps = generators_dict["test"]
+
+        computed_first_train_x, computed_first_train_y = next(computed_train_gen)
+        computed_first_val_x, computed_first_val_y = next(computed_val_gen)
+        computed_first_test_x, computed_first_test_y = next(computed_test_gen)
+
+        # Check
+        assert_equal(computed_first_train_x, expected_first_train_x)
+        assert_equal(computed_first_train_y, expected_first_train_y)
+
+        assert_equal(computed_first_val_x, expected_first_val_x)
+        assert_equal(computed_first_val_y, expected_first_val_y)
+
+        assert_equal(computed_first_test_x, expected_first_test_x)
+        assert_equal(computed_first_test_y, expected_first_test_y)
+
+        assert_almost_equal(computed_stats_df.values, expected_stats_df.values, decimal=6)
+
