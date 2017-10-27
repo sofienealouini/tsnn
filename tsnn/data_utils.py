@@ -206,8 +206,7 @@ def sample_gen_rnn(scaled_inputs,
                    limits=None,
                    samples_length=168,
                    sampling_step=1,
-                   batch_size=24,
-                   inputs_only=False):
+                   batch_size=24):
     """Batch generator for RNN architectures.
 
     :param scaled_inputs: pandas.DataFrame - inputs obtained from inputs_targets_split()
@@ -216,9 +215,6 @@ def sample_gen_rnn(scaled_inputs,
     :param samples_length: int - time window size (timesteps) for the RNN. Default = 168
     :param sampling_step: int - step of the sliding time window. Default = 1 (no position skipped)
     :param batch_size: int - batch size for mini-batch gradient descent. Default = 24
-    :param inputs_only: boolean - whether the generator yields inputs only or (inputs, targets). 
-        - Set to False if using fit_generator or evaluate_generator
-        - Set to True if using predict_generator
     :yield: tuple - (input_batch, target_batch)
     """
     if limits is None:
@@ -236,10 +232,7 @@ def sample_gen_rnn(scaled_inputs,
         tar_batch.append(tar)
 
         if len(inp_batch) == batch_size or (inp_row + sampling_step) >= limits[1]:
-            if inputs_only:
-                yield np.array(inp_batch)
-            else:
-                yield np.array(inp_batch), np.array(tar_batch)
+            yield np.array(inp_batch), np.array(tar_batch)
             inp_batch = []
             tar_batch = []
         inp_row += sampling_step
@@ -248,6 +241,12 @@ def sample_gen_rnn(scaled_inputs,
         if inp_row >= limits[1]:
             inp_row = limits[0]
             tar_row = limits[0]
+
+
+def yield_inputs_only(generator):
+    while True:
+        x, y = next(generator)
+        yield x
 
 
 def compute_generator_steps(idx, sampling_step, batch_size):
@@ -265,8 +264,7 @@ def compute_generator_steps(idx, sampling_step, batch_size):
 
 
 def prepare_data_generators(raw_data, input_cols, target_cols, scaling_method="", samples_length=168, pred_delay=24,
-                            pred_length=1, sampling_step=1, batch_size=24, train_ratio=0.6, val_ratio=0.2,
-                            inputs_only=False):
+                            pred_length=1, sampling_step=1, batch_size=24, train_ratio=0.6, val_ratio=0.2):
     """Global data preparation method. Scales data and prepares generators respectively for train, validation and test.
     
     :param raw_data: pandas.DataFrame - original DataFrame
@@ -280,22 +278,19 @@ def prepare_data_generators(raw_data, input_cols, target_cols, scaling_method=""
     :param batch_size: int - batch size for mini-batch gradient descent.
     :param train_ratio: float in ]0, 1[ - Proportion of rows to use as training set. Default = 0.6
     :param val_ratio: float in ]0, 1[ - Proportion of rows to use as validation set. Default = 0.2
-    :param inputs_only: boolean - whether the generator yields inputs only or (inputs, targets). 
-        - Set to False if using fit_generator or evaluate_generator
-        - Set to True if using predict_generator
     :return: dictionary of (generators, nb steps for each generator), stats useful for reverse scaling
     """
     scaled, stats_df = scaling(raw_data, scaling_method)
     inputs, targets = inputs_targets_split(scaled, input_cols, target_cols, samples_length, pred_delay, pred_length)
     train_idx, val_idx, test_idx = train_val_split(targets, train_ratio, val_ratio)
 
-    train_gen = sample_gen_rnn(inputs, targets, train_idx, samples_length, sampling_step, batch_size, inputs_only)
+    train_gen = sample_gen_rnn(inputs, targets, train_idx, samples_length, sampling_step, batch_size)
     train_gen_steps = compute_generator_steps(train_idx, sampling_step, batch_size)
 
-    val_gen = sample_gen_rnn(inputs, targets, val_idx, samples_length, sampling_step, batch_size, inputs_only)
+    val_gen = sample_gen_rnn(inputs, targets, val_idx, samples_length, sampling_step, batch_size)
     val_gen_steps = compute_generator_steps(val_idx, sampling_step, batch_size)
 
-    test_gen = sample_gen_rnn(inputs, targets, test_idx, samples_length, sampling_step, batch_size, inputs_only)
+    test_gen = sample_gen_rnn(inputs, targets, test_idx, samples_length, sampling_step, batch_size)
     test_gen_steps = compute_generator_steps(test_idx, sampling_step, batch_size)
 
     generators_dict = {"train": (train_gen, train_gen_steps),

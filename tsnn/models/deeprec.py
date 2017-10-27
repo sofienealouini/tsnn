@@ -23,23 +23,24 @@ class DeepRecurrent(Model):
         type_dict = {"simple_rnn": SimpleRNN, "lstm": LSTM, "gru": GRU}
         rec_layer = type_dict[rec_layer_type]
         nb_rec_layers = len(rec_layers_dims)
+        rec_layers = [None for l in range(nb_rec_layers+1)]
 
         self.main_input = Input(shape=input_shape, name="Main_input")
 
-        rec_output = self.main_input
+        rec_layers[0] = self.main_input
         i = 0
         for dim in rec_layers_dims:
             i += 1
             is_last_rec_layer = (i == nb_rec_layers)
-            rec_output = rec_layer(units=dim,
-                                   use_bias=rec_use_bias,
-                                   activation=rec_activation,
-                                   dropout=dropout,
-                                   name="Recurrent_"+str(i),
-                                   return_sequences=not is_last_rec_layer)(rec_output)
+            rec_layers[i] = rec_layer(units=dim,
+                                      use_bias=rec_use_bias,
+                                      activation=rec_activation,
+                                      dropout=dropout,
+                                      name="Recurrent_"+str(i),
+                                      return_sequences=not is_last_rec_layer)(rec_layers[i-1])
 
         self.main_output = Dense(units=output_dim,
                                  activation="linear",
-                                 use_bias=dense_use_bias)(rec_output)
+                                 use_bias=dense_use_bias)(rec_layers[-1])
 
         super(DeepRecurrent, self).__init__(inputs=[self.main_input], outputs=[self.main_output])
