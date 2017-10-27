@@ -5,7 +5,7 @@ import pandas as pd
 from numpy.testing import assert_equal, assert_almost_equal
 from tsnn.data_utils import stats, scale_standard, scale_maxabs, scale_minmax, scaling, \
     reverse_standard, reverse_maxabs, reverse_minmax, reverse_scaling, inputs_targets_split, train_val_split, \
-    colnames_to_colindices, sample_gen_rnn, compute_generator_steps, prepare_data_generators
+    colnames_to_colindices, sample_gen_rnn, compute_generator_steps, prepare_data_generators, yield_inputs_only
 
 
 class TestDataUtilsFunctions(unittest.TestCase):
@@ -546,6 +546,23 @@ class TestDataUtilsFunctions(unittest.TestCase):
         # Check
         self.assertEqual(computed_steps_1, 245)
         self.assertEqual(computed_steps_2, 62)
+
+    def test_yield_inputs_only(self):
+
+        # Given
+        def simple_gen():
+            x = 4
+            while True:
+                x += 1
+                yield x * x, x-1
+        expected_output = 25
+
+        # When
+        gen = yield_inputs_only(simple_gen())
+        computed_output = next(gen)
+
+        # Check
+        self.assertEqual(computed_output, expected_output)
 
     @patch('tsnn.data_utils.scaling')
     @patch('tsnn.data_utils.inputs_targets_split')

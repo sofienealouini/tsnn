@@ -15,7 +15,7 @@ class DeepRecurrent(Model):
             --> rec_layers_dims is then [128, 64]
         :param rec_layer_type: String - type of recurrent layers to use : one of ['simple_rnn', 'lstm', 'gru']
         :param rec_use_bias: boolean - whether to use bias for the recurrent layers. Default = True
-        :param rec_activation: Keras activation function to use for all recurrent layers - Default = 'relu'
+        :param rec_activation: Keras activation function to use for all recurrent layers - Default = 'tanh'
         :param dense_use_bias: boolean - whether to use bias for the output layer. Default = True
         :param dropout: float in ]0, 1[ - dropout rate for all layers. Default = 0.2
         """
