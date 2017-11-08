@@ -97,3 +97,4 @@ class DeepRecurrent(Model):
             attention_layer = Dense(int(rec_output.shape[1]), activation="softmax", name=name)(rec_output)
             rec_output = Multiply()([rec_output, attention_layer])
         return rec_output
+

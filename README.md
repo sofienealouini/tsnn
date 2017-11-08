@@ -27,11 +27,7 @@ Once you have activated your conda environment, you can easily install the packa
 pip install tsnn
 ```
 
-The next section provides a quick start guide to using TSNN. A more comprehensive tutorial is detailed in the PackageTesting.ipynb notebook.
-
-## Using TSNN
-
-
+A comprehensive tutorial on how to use TSNN is provided PackageTesting.ipynb notebook.
 
 
 ## Built With
@@ -44,10 +40,4 @@ The next section provides a quick start guide to using TSNN. A more comprehensiv
 
 * **Sofiene Alouini** - *Engineering graduate - Machine Learning Enthusiast*
 
-
-## License
-
-
-
-## Acknowledgments
 
